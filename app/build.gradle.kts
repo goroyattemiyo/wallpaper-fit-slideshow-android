@@ -32,6 +32,7 @@ android {
 }
 
 dependencies {
-    implementation("androidx.work:work-runtime:2.12.0")
+    implementation("androidx.work:work-runtime:2.11.1")
+    implementation("androidx.exifinterface:exifinterface:1.4.2")
     testImplementation("junit:junit:4.13.2")
 }

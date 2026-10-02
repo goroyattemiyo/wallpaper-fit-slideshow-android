@@ -255,11 +255,11 @@ V1では行わない。
 - minSdk: API 24
 - compileSdk: API 36
 - targetSdk: API 36
-- AGP: 9.3.0
-- Gradle: 9.5.0
+- AGP: 9.4.0
+- Gradle: 9.6.0
 - JDK: 17
 - UI: standard Android Views
-- WorkManager: 2.12.0
+- WorkManager: 2.11.1
 
 Android 17 / API 37は2026-10-02時点の公式SDKページにPreview表記が残るため、
 V1は安定性を優先してAPI 36をcompile / targetに使用する。
