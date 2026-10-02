@@ -20,18 +20,17 @@
         android:layout_marginTop="8dp"
         android:text="@string/development_status" />
 
-    <LinearLayout
+    <Button
+        android:id="@+id/add_images_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
-        android:orientation="horizontal">
+        android:text="画像を追加" />
 
-        <Button
-            android:id="@+id/add_images_button"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="画像を追加" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
 
         <Button
             android:id="@+id/edit_image_button"
@@ -39,6 +38,20 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="表示調整" />
+
+        <Button
+            android:id="@+id/move_up_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="上へ" />
+
+        <Button
+            android:id="@+id/move_down_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="下へ" />
 
         <Button
             android:id="@+id/remove_image_button"

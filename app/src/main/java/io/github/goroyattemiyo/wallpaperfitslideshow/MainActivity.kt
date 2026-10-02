@@ -91,6 +91,12 @@ class MainActivity : Activity() {
         findViewById<Button>(R.id.remove_image_button).setOnClickListener {
             removeSelected()
         }
+        findViewById<Button>(R.id.move_up_button).setOnClickListener {
+            moveSelected(-1)
+        }
+        findViewById<Button>(R.id.move_down_button).setOnClickListener {
+            moveSelected(1)
+        }
         findViewById<Button>(R.id.start_button).setOnClickListener {
             startSlideshow()
         }
@@ -278,6 +284,35 @@ class MainActivity : Activity() {
             Intent(this, ImageEditorActivity::class.java)
                 .putExtra(ImageEditorActivity.EXTRA_ITEM_ID, id),
         )
+    }
+
+    private fun moveSelected(delta: Int) {
+        val id = selectedItemId ?: run {
+            toast("移動する画像を選択してください。")
+            return
+        }
+
+        settings = settingsStore.update { current ->
+            val ordered = current.items.sortedBy { it.order }.toMutableList()
+            val from = ordered.indexOfFirst { it.id == id }
+            if (from < 0) {
+                return@update current
+            }
+
+            val to = (from + delta).coerceIn(0, ordered.lastIndex)
+            if (to == from) {
+                return@update current
+            }
+
+            val moved = ordered.removeAt(from)
+            ordered.add(to, moved)
+            current.copy(
+                items = ordered.mapIndexed { index, item ->
+                    item.copy(order = index)
+                },
+            )
+        }
+        refreshUi()
     }
 
     private fun removeSelected() {

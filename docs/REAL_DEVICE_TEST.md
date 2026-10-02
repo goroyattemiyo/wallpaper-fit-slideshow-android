@@ -125,6 +125,8 @@ Failure notes / screenshots:
 With at least three images:
 
 ### Sequential
+- [ ] Select an image and move it with "上へ / 下へ"
+- [ ] The list order changes and remains after app restart
 - [ ] Select "順番"
 - [ ] Press "次へ" several times
 - [ ] Images advance in order
