@@ -34,19 +34,14 @@ class WallpaperOperationService(
             return WallpaperOperationResult.NoImages
         }
 
-        val attempted = mutableSetOf<String>()
-        var currentItemId = initial.currentItemId
+        val candidates = SlideshowSelector.candidates(
+            items = initial.items,
+            currentItemId = initial.currentItemId,
+            orderMode = initial.orderMode,
+        )
         var lastRenderError: String? = null
 
-        while (attempted.size < enabledCount) {
-            val candidate = SlideshowSelector.selectNext(
-                items = initial.items.filterNot { it.id in attempted },
-                currentItemId = currentItemId,
-                orderMode = initial.orderMode,
-            ) ?: break
-
-            attempted += candidate.id
-
+        for (candidate in candidates) {
             val bitmap = try {
                 renderer.render(
                     item = candidate,
@@ -54,7 +49,6 @@ class WallpaperOperationService(
                 )
             } catch (exception: WallpaperRenderer.RenderException) {
                 lastRenderError = exception.message ?: "画像を処理できませんでした。"
-                currentItemId = candidate.id
                 continue
             }
 

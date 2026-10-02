@@ -4,8 +4,8 @@ import io.github.goroyattemiyo.wallpaperfitslideshow.model.OrderMode
 import io.github.goroyattemiyo.wallpaperfitslideshow.model.WallpaperItem
 import kotlin.random.Random
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 
 class SlideshowSelectorTest {
@@ -30,20 +30,23 @@ class SlideshowSelectorTest {
     fun sequentialAdvancesAndWraps() {
         assertEquals(
             "b",
-            SlideshowSelector.selectNext(
-                items,
-                "a",
-                OrderMode.SEQUENTIAL,
-            )?.id,
+            SlideshowSelector.selectNext(items, "a", OrderMode.SEQUENTIAL)?.id,
         )
         assertEquals(
             "a",
-            SlideshowSelector.selectNext(
-                items,
-                "c",
-                OrderMode.SEQUENTIAL,
-            )?.id,
+            SlideshowSelector.selectNext(items, "c", OrderMode.SEQUENTIAL)?.id,
         )
+    }
+
+    @Test
+    fun sequentialCandidatesDoNotReturnCurrentAgain() {
+        val ids = SlideshowSelector.candidates(
+            items = items,
+            currentItemId = "b",
+            orderMode = OrderMode.SEQUENTIAL,
+        ).map { it.id }
+
+        assertEquals(listOf("c", "a"), ids)
     }
 
     @Test
@@ -69,6 +72,19 @@ class SlideshowSelectorTest {
 
             assertNotEquals("b", result?.id)
         }
+    }
+
+    @Test
+    fun singleImageCanRepeat() {
+        val only = items.take(1)
+        assertEquals(
+            "a",
+            SlideshowSelector.selectNext(
+                only,
+                "a",
+                OrderMode.SEQUENTIAL,
+            )?.id,
+        )
     }
 
     @Test
