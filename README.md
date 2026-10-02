@@ -58,7 +58,23 @@ V1 Gate 1 implementation in progress.
 - UI: standard Android Views
 - scheduling: WorkManager 2.11.1
 
-現在はAndroid scaffoldと純粋Kotlinのレイアウト計算エンジンまで実装しています。
+現在のDraft実装には以下が入っています。
+
+- 複数画像選択とpersistable URI
+- 順番 / ランダム
+- Home / Lock / Both
+- CONTAIN（no-upscale） / CROP
+- Cropのピンチ拡大・ドラッグ位置調整
+- 背景色
+- 画像ごとの表示設定保存
+- EXIF orientation補正
+- 1画像ずつのsampled decode
+- desired wallpaper canvas + visible viewport crop hint
+- 手動「次へ」
+- WorkManagerによる15分以上の自動切替
+- AtomicFile + JSONの設定保存
+
+Android SDK上のcompile / lint / APK buildとRedmi実機確認はまだ未検証です。
 
 ## Documents
 
@@ -72,3 +88,21 @@ V1 Gate 1 implementation in progress.
 ## License
 
 無料配布を前提としています。OSSライセンスは未確定です。
+
+
+## Local verification
+
+GitHub Actionsを消費せずローカル確認できます。
+
+```powershell
+git checkout design/v1-foundation
+powershell -ExecutionPolicy Bypass -File .\scripts\local-verify.ps1
+```
+
+USB接続済み端末へdebug APKまで入れる場合:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\local-verify.ps1 -Install
+```
+
+詳細は [docs/REAL_DEVICE_TEST.md](docs/REAL_DEVICE_TEST.md) を参照してください。

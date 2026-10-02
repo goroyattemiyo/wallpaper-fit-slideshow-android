@@ -18,8 +18,9 @@ V1の仕様・アーキテクチャを確定してからAndroid実装へ入る�
 
 ## Current Status
 
-- Status: implementing
+- Status: implemented-unverified
 - Android project scaffold: implemented-unverified
+- V1 functional path: implemented-unverified
 - CI: not configured / not run
 - Real device test: not started
 
@@ -36,6 +37,7 @@ V1の仕様・アーキテクチャを確定してからAndroid実装へ入る�
 ## In Progress
 
 - [x] V1 design review
+- [x] Static review of V1 implementation
 - [ ] Android scaffold compile verification
 
 ## Remaining
@@ -45,10 +47,11 @@ V1の仕様・アーキテクチャを確定してからAndroid実装へ入る�
 - [x] minSdk決定: API 24
 - [x] compileSdk / targetSdk決定: API 36
 - [x] Android project scaffold
-- [ ] renderer実装
-- [ ] layout editor実装
-- [ ] scheduler実装
-- [ ] tests
+- [x] renderer実装
+- [x] layout editor実装
+- [x] scheduler実装
+- [x] Pure Kotlin unit tests written
+- [ ] Android/Gradle tests executed
 - [ ] Redmi 12 5G / HyperOS実機確認
 
 ## Known Risks
@@ -87,7 +90,8 @@ V1の仕様・アーキテクチャを確定してからAndroid実装へ入る�
 - [x] Android公式 WallpaperManager API確認
 - [x] Android公式 WorkManager periodic interval確認
 - [x] Android公式 Storage Access Framework / persistable URI確認
-- [x] LayoutCalculator standalone Kotlin smoke check
+- [x] Pure Kotlin core smoke check: PASS (layout / selector / decode / geometry)
+- [x] WallpaperManager / WorkManager / SAF APIs reviewed against Android official docs
 - [ ] Android Gradle compile
 - [ ] unit test
 - [ ] integration test
@@ -96,10 +100,10 @@ V1の仕様・アーキテクチャを確定してからAndroid実装へ入る�
 
 ## Next Action
 
-1. Android SDKがある環境でscaffoldをcompile
-2. LayoutCalculatorのGradle Unit Testを実行
-3. FR-01 複数画像選択 + persistable URIを実装
-4. SettingsStoreへ進む
+1. Home Windows環境で `scripts/local-verify.ps1 -Install` を実行
+2. `docs/REAL_DEVICE_TEST.md` に沿ってRedmi 12 5Gで確認
+3. 失敗があれば原因特定 → 最小修正 → 再検証
+4. 実機PASS後にのみPRをReady for reviewへ変更しFull CIを1回実行
 
 ## Do Not
 
@@ -109,3 +113,39 @@ V1の仕様・アーキテクチャを確定してからAndroid実装へ入る�
 - 全画像を同時decodeしない
 - broad storage permissionを要求しない
 - CIをデバッグに使わない
+
+
+## Current Implementation Snapshot
+
+Latest application code commit before this handoff documentation:
+
+- `bdfd21fc889b9b64eefdbc39b190474d3ed20cd7`
+
+Implemented:
+
+- multi-image SAF picker + persisted read permission
+- AtomicFile JSON settings
+- sequential/random selector
+- CONTAIN no-upscale
+- CROP zoom/pan
+- background color
+- EXIF orientation handling
+- memory-bounded one-image decode
+- desired wallpaper output canvas
+- physical-screen visible viewport
+- WallpaperManager visibleCropHint
+- Home / Lock / Both
+- manual Next
+- WorkManager periodic schedule
+- lifecycle / race / missing-source handling
+- local verification script
+- Redmi real-device checklist
+
+Unverified:
+
+- Android Gradle compile
+- lint
+- APK build
+- Redmi runtime behavior
+- actual HyperOS preview-to-wallpaper crop difference
+- EXIF edge cases on real files
