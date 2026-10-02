@@ -301,8 +301,12 @@ class MainActivity : Activity() {
 
             current.copy(
                 items = remaining,
+                slideshowEnabled = current.slideshowEnabled && remaining.any { it.enabled },
                 currentItemId = current.currentItemId.takeUnless { it == id },
             )
+        }
+        if (!settings.slideshowEnabled) {
+            scheduler.cancel()
         }
         selectedItemId = null
         refreshUi()
@@ -336,6 +340,9 @@ class MainActivity : Activity() {
         executor.execute {
             val result = operationService.applyNext(requireSlideshowEnabled = false)
             runOnUiThread {
+                if (isDestroyed) {
+                    return@runOnUiThread
+                }
                 when (result) {
                     is WallpaperOperationResult.Success -> toast("壁紙を変更しました。")
                     is WallpaperOperationResult.Failure -> toast(result.message)

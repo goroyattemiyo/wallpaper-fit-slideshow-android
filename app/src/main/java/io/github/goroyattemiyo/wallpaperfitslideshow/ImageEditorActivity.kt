@@ -73,6 +73,14 @@ class ImageEditorActivity : Activity() {
                 )
             }
             runOnUiThread {
+                if (isFinishing || isDestroyed) {
+                    result.getOrNull()?.let { bitmap ->
+                        if (!bitmap.isRecycled) {
+                            bitmap.recycle()
+                        }
+                    }
+                    return@runOnUiThread
+                }
                 result.onSuccess(preview::setBitmap)
                     .onFailure {
                         Toast.makeText(
