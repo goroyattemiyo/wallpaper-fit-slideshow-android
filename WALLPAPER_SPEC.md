@@ -249,13 +249,22 @@ V1では行わない。
 - [ ] プレビューと実壁紙の差異を記録
 - [ ] HyperOSのバックグラウンド制限による遅延有無を記録
 
-## 10. Open Decisions
+## 10. Build Baseline
 
-実装開始前または実装中に確認する。
-
-- package name
+- package: `io.github.goroyattemiyo.wallpaperfitslideshow`
 - minSdk: API 24
-- compileSdk / targetSdk: 実装開始時点の最新安定版とAGP互換性を公式情報で確認
-- UI: 標準Android Viewsを採用
+- compileSdk: API 36
+- targetSdk: API 36
+- AGP: 9.3.0
+- Gradle: 9.5.0
+- JDK: 17
+- UI: standard Android Views
+- WorkManager: 2.12.0
+
+Android 17 / API 37は2026-10-02時点の公式SDKページにPreview表記が残るため、
+V1は安定性を優先してAPI 36をcompile / targetに使用する。
+
+## 11. Open Decisions
+
 - 自動背景色をV1に含めるか
 - OSS license

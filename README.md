@@ -48,9 +48,17 @@ V1では次を行いません。
 
 ## Status
 
-Design phase.
+V1 Gate 1 implementation in progress.
 
-実装開始前に仕様とアーキテクチャを固定します。
+- package: `io.github.goroyattemiyo.wallpaperfitslideshow`
+- minSdk: 24
+- compileSdk / targetSdk: 36
+- AGP: 9.3.0
+- Gradle: 9.5.0
+- UI: standard Android Views
+- scheduling: WorkManager 2.12.0
+
+現在はAndroid scaffoldと純粋Kotlinのレイアウト計算エンジンまで実装しています。
 
 ## Documents
 

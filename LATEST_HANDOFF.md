@@ -18,8 +18,8 @@ V1の仕様・アーキテクチャを確定してからAndroid実装へ入る�
 
 ## Current Status
 
-- Status: design
-- Android project scaffold: not started
+- Status: implementing
+- Android project scaffold: implemented-unverified
 - CI: not configured / not run
 - Real device test: not started
 
@@ -35,15 +35,16 @@ V1の仕様・アーキテクチャを確定してからAndroid実装へ入る�
 
 ## In Progress
 
-- [ ] V1 design review
+- [x] V1 design review
+- [ ] Android scaffold compile verification
 
 ## Remaining
 
 - [ ] license決定
-- [ ] package name決定
+- [x] package name決定: `io.github.goroyattemiyo.wallpaperfitslideshow`
 - [x] minSdk決定: API 24
-- [ ] compileSdk / targetSdk最終決定
-- [ ] Android project scaffold
+- [x] compileSdk / targetSdk決定: API 36
+- [x] Android project scaffold
 - [ ] renderer実装
 - [ ] layout editor実装
 - [ ] scheduler実装
@@ -86,7 +87,8 @@ V1の仕様・アーキテクチャを確定してからAndroid実装へ入る�
 - [x] Android公式 WallpaperManager API確認
 - [x] Android公式 WorkManager periodic interval確認
 - [x] Android公式 Storage Access Framework / persistable URI確認
-- [ ] compile
+- [x] LayoutCalculator standalone Kotlin smoke check
+- [ ] Android Gradle compile
 - [ ] unit test
 - [ ] integration test
 - [ ] CI
@@ -94,10 +96,10 @@ V1の仕様・アーキテクチャを確定してからAndroid実装へ入る�
 
 ## Next Action
 
-1. Design PRをレビュー
-2. package name / compileSdk / targetSdkを確定
-3. 最小Android projectをscaffold
-4. LayoutCalculatorから実装開始
+1. Android SDKがある環境でscaffoldをcompile
+2. LayoutCalculatorのGradle Unit Testを実行
+3. FR-01 複数画像選択 + persistable URIを実装
+4. SettingsStoreへ進む
 
 ## Do Not
 

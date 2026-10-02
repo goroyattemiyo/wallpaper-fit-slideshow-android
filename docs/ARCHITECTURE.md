@@ -44,7 +44,7 @@ Android adapters
 V1は標準Android Viewsを使用する。
 Composeは採用しない。UI規模に対して依存・起動コストを増やさず、軽量性を優先する。
 
-minSdkはAPI 24とする。compileSdk / targetSdkはscaffold時点の最新安定版とAGP互換性を公式情報で確認して決定する。
+minSdkはAPI 24、compileSdk / targetSdkはAPI 36とする。AGP 9.3.0 + Gradle 9.5.0 + JDK 17をV1の初期ビルド基準とする。
 
 ## Main Components
 
