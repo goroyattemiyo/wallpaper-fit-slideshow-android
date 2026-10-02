@@ -52,10 +52,24 @@ class WallpaperOperationService(
                 continue
             }
 
+            val latest = settingsStore.load()
+            if (requireSlideshowEnabled && !latest.slideshowEnabled) {
+                if (!bitmap.isRecycled) {
+                    bitmap.recycle()
+                }
+                return WallpaperOperationResult.Disabled
+            }
+            if (latest.items.none { it.id == candidate.id && it.enabled }) {
+                if (!bitmap.isRecycled) {
+                    bitmap.recycle()
+                }
+                continue
+            }
+
             try {
                 applier.apply(
                     bitmap = bitmap,
-                    target = initial.target,
+                    target = latest.target,
                 )
             } catch (exception: WallpaperApplier.ApplyException) {
                 val message = exception.message ?: "壁紙を適用できませんでした。"

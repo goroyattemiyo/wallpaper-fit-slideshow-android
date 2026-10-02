@@ -16,8 +16,8 @@ import java.nio.charset.StandardCharsets
 class SettingsStore(context: Context) {
     private val atomicFile = AtomicFile(File(context.filesDir, FILE_NAME))
 
-    @Synchronized
-    fun load(): AppSettings {
+    fun load(): AppSettings = synchronized(FILE_LOCK) {
+
         if (!atomicFile.baseFile.exists()) {
             return AppSettings()
         }
@@ -31,8 +31,8 @@ class SettingsStore(context: Context) {
         }
     }
 
-    @Synchronized
-    fun save(settings: AppSettings) {
+    fun save(settings: AppSettings) = synchronized(FILE_LOCK) {
+
         val bytes = encode(settings).toString().toByteArray(StandardCharsets.UTF_8)
         val output = atomicFile.startWrite()
         try {
@@ -45,12 +45,12 @@ class SettingsStore(context: Context) {
         }
     }
 
-    @Synchronized
-    fun update(transform: (AppSettings) -> AppSettings): AppSettings {
-        val updated = transform(load())
-        save(updated)
-        return updated
-    }
+    fun update(transform: (AppSettings) -> AppSettings): AppSettings =
+        synchronized(FILE_LOCK) {
+            val updated = transform(load())
+            save(updated)
+            updated
+        }
 
     private fun encode(settings: AppSettings): JSONObject {
         val items = JSONArray()
@@ -183,5 +183,6 @@ class SettingsStore(context: Context) {
 
     companion object {
         private const val FILE_NAME = "wallpaper-settings.json"
+        private val FILE_LOCK = Any()
     }
 }
