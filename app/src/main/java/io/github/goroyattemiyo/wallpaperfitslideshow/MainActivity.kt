@@ -301,7 +301,7 @@ class MainActivity : Activity() {
 
             current.copy(
                 items = remaining,
-                slideshowEnabled = current.slideshowEnabled && remaining.any { it.enabled },
+                slideshowEnabled = current.slideshowEnabled && remaining.count { it.enabled } >= 2,
                 currentItemId = current.currentItemId.takeUnless { it == id },
             )
         }
@@ -314,8 +314,8 @@ class MainActivity : Activity() {
 
     private fun startSlideshow() {
         settings = settingsStore.load()
-        if (settings.items.none { it.enabled }) {
-            toast("画像を1枚以上追加してください。")
+        if (settings.items.count { it.enabled } < 2) {
+            toast("自動切替には画像を2枚以上追加してください。")
             return
         }
 

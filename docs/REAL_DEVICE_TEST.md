@@ -142,7 +142,12 @@ Failure notes:
 
 ## 8. Automatic Slideshow
 
-Start with 15 minutes.
+First verify the lightweight guard:
+
+- [ ] With only one image, pressing "開始" does not start periodic slideshow
+- [ ] Manual "壁紙に適用" still works with one image
+
+Then add at least two images and start with 15 minutes.
 
 - [ ] Press "開始"
 - [ ] Status shows automatic slideshow ON

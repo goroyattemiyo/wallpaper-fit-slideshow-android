@@ -117,6 +117,8 @@ V1は WorkManager の PeriodicWorkRequest を利用する。
 
 ### FR-09 Slideshow Control
 
+- 自動切替の開始には有効画像2枚以上を必要とする
+- 1枚だけの場合は手動適用のみ可能
 - Start
 - Stop
 - Next now
@@ -233,7 +235,8 @@ V1では行わない。
 - [ ] Home + Lockへ適用できる
 - [ ] 順番切替できる
 - [ ] ランダム切替できる
-- [ ] 15分以上で自動切替を設定できる
+- [ ] 2枚以上ある場合に15分以上で自動切替を設定できる
+- [ ] 1枚だけでは不要なperiodic workを開始しない
 - [ ] 「次へ」で即時変更できる
 
 ### Reliability
