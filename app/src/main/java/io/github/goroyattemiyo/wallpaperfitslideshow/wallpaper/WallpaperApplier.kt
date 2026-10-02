@@ -3,6 +3,7 @@ package io.github.goroyattemiyo.wallpaperfitslideshow.wallpaper
 import android.app.WallpaperManager
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.Rect
 import io.github.goroyattemiyo.wallpaperfitslideshow.model.WallpaperTarget
 import java.io.IOException
 
@@ -14,6 +15,7 @@ class WallpaperApplier(
     @Throws(ApplyException::class)
     fun apply(
         bitmap: Bitmap,
+        visibleCropHint: Rect,
         target: WallpaperTarget,
     ) {
         if (!wallpaperManager.isWallpaperSupported) {
@@ -32,7 +34,7 @@ class WallpaperApplier(
         try {
             val wallpaperId = wallpaperManager.setBitmap(
                 bitmap,
-                null,
+                visibleCropHint,
                 false,
                 flags,
             )
@@ -41,6 +43,8 @@ class WallpaperApplier(
             }
         } catch (exception: SecurityException) {
             throw ApplyException("壁紙変更が拒否されました。", exception)
+        } catch (exception: IllegalArgumentException) {
+            throw ApplyException("壁紙の表示範囲が不正です。", exception)
         } catch (exception: IOException) {
             throw ApplyException("壁紙の保存中にエラーが発生しました。", exception)
         }

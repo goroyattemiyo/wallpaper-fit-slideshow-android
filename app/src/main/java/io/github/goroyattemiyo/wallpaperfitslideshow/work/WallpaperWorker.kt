@@ -21,7 +21,7 @@ class WallpaperWorker(
             is WallpaperOperationResult.Failure,
             -> Result.success()
 
-            WallpaperOperationResult.Busy -> Result.retry()
+            WallpaperOperationResult.Busy -> Result.success()
         }
     }
 }

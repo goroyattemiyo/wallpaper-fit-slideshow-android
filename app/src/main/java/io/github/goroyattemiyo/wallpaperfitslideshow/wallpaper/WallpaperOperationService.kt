@@ -42,10 +42,10 @@ class WallpaperOperationService(
         var lastRenderError: String? = null
 
         for (candidate in candidates) {
-            val bitmap = try {
+            val rendered = try {
                 renderer.render(
                     item = candidate,
-                    targetSize = targetSizeResolver.resolve(),
+                    geometry = targetSizeResolver.resolve(),
                 )
             } catch (exception: WallpaperRenderer.RenderException) {
                 lastRenderError = exception.message ?: "画像を処理できませんでした。"
@@ -54,21 +54,22 @@ class WallpaperOperationService(
 
             val latest = settingsStore.load()
             if (requireSlideshowEnabled && !latest.slideshowEnabled) {
-                if (!bitmap.isRecycled) {
-                    bitmap.recycle()
+                if (!rendered.bitmap.isRecycled) {
+                    rendered.bitmap.recycle()
                 }
                 return WallpaperOperationResult.Disabled
             }
             if (latest.items.none { it.id == candidate.id && it.enabled }) {
-                if (!bitmap.isRecycled) {
-                    bitmap.recycle()
+                if (!rendered.bitmap.isRecycled) {
+                    rendered.bitmap.recycle()
                 }
                 continue
             }
 
             try {
                 applier.apply(
-                    bitmap = bitmap,
+                    bitmap = rendered.bitmap,
+                    visibleCropHint = rendered.visibleCropHint,
                     target = latest.target,
                 )
             } catch (exception: WallpaperApplier.ApplyException) {
@@ -76,8 +77,8 @@ class WallpaperOperationService(
                 persistError(message)
                 return WallpaperOperationResult.Failure(message)
             } finally {
-                if (!bitmap.isRecycled) {
-                    bitmap.recycle()
+                if (!rendered.bitmap.isRecycled) {
+                    rendered.bitmap.recycle()
                 }
             }
 

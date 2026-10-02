@@ -43,8 +43,11 @@ class ImageEditorActivity : Activity() {
 
         titleText.text = item.displayName
         preview.setLayoutState(item.layout)
-        val targetSize = WallpaperTargetSizeResolver(applicationContext).resolve()
-        preview.setTargetSize(targetSize.width, targetSize.height)
+        val geometry = WallpaperTargetSizeResolver(applicationContext).resolve()
+        preview.setTargetSize(
+            geometry.visibleWidth,
+            geometry.visibleHeight,
+        )
 
         findViewById<Button>(R.id.contain_button).setOnClickListener {
             preview.setMode(LayoutMode.CONTAIN)

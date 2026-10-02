@@ -4,14 +4,20 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.graphics.Rect
 import android.graphics.RectF
 import io.github.goroyattemiyo.wallpaperfitslideshow.core.layout.LayoutCalculator
 import io.github.goroyattemiyo.wallpaperfitslideshow.core.layout.LayoutRequest
 import io.github.goroyattemiyo.wallpaperfitslideshow.core.layout.LayoutTransform
-import io.github.goroyattemiyo.wallpaperfitslideshow.core.render.PixelSize
+import io.github.goroyattemiyo.wallpaperfitslideshow.core.render.WallpaperGeometry
 import io.github.goroyattemiyo.wallpaperfitslideshow.model.WallpaperItem
 import java.io.IOException
 import kotlin.math.ceil
+
+data class RenderedWallpaper(
+    val bitmap: Bitmap,
+    val visibleCropHint: Rect,
+)
 
 class WallpaperRenderer(
     context: Context,
@@ -21,8 +27,8 @@ class WallpaperRenderer(
     @Throws(RenderException::class)
     fun render(
         item: WallpaperItem,
-        targetSize: PixelSize,
-    ): Bitmap {
+        geometry: WallpaperGeometry,
+    ): RenderedWallpaper {
         val info = try {
             sourceLoader.inspect(item.uri)
         } catch (exception: SourceBitmapLoader.SourceImageException) {
@@ -36,8 +42,8 @@ class WallpaperRenderer(
             LayoutRequest(
                 sourceWidth = info.logicalWidth,
                 sourceHeight = info.logicalHeight,
-                targetWidth = targetSize.width,
-                targetHeight = targetSize.height,
+                targetWidth = geometry.visibleWidth,
+                targetHeight = geometry.visibleHeight,
                 mode = item.layout.mode,
                 userScale = item.layout.userScale,
                 offsetXNormalized = item.layout.offsetXNormalized,
@@ -68,7 +74,7 @@ class WallpaperRenderer(
                 source = loaded.bitmap,
                 layoutTransform = transform,
                 backgroundColor = item.layout.backgroundColor,
-                targetSize = targetSize,
+                geometry = geometry,
             )
         } catch (outOfMemory: OutOfMemoryError) {
             throw RenderException("壁紙生成中にメモリが不足しました。", outOfMemory)
@@ -83,11 +89,11 @@ class WallpaperRenderer(
         source: Bitmap,
         layoutTransform: LayoutTransform,
         backgroundColor: Int,
-        targetSize: PixelSize,
-    ): Bitmap {
+        geometry: WallpaperGeometry,
+    ): RenderedWallpaper {
         val output = Bitmap.createBitmap(
-            targetSize.width,
-            targetSize.height,
+            geometry.outputSize.width,
+            geometry.outputSize.height,
             Bitmap.Config.ARGB_8888,
         )
 
@@ -95,16 +101,27 @@ class WallpaperRenderer(
             val canvas = Canvas(output)
             canvas.drawColor(backgroundColor)
 
+            val left = geometry.visibleLeft + layoutTransform.translationX
+            val top = geometry.visibleTop + layoutTransform.translationY
             val destination = RectF(
-                layoutTransform.translationX.toFloat(),
-                layoutTransform.translationY.toFloat(),
-                (layoutTransform.translationX + layoutTransform.renderedWidth).toFloat(),
-                (layoutTransform.translationY + layoutTransform.renderedHeight).toFloat(),
+                left.toFloat(),
+                top.toFloat(),
+                (left + layoutTransform.renderedWidth).toFloat(),
+                (top + layoutTransform.renderedHeight).toFloat(),
             )
 
             val paint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
             canvas.drawBitmap(source, null, destination, paint)
-            return output
+
+            return RenderedWallpaper(
+                bitmap = output,
+                visibleCropHint = Rect(
+                    geometry.visibleLeft,
+                    geometry.visibleTop,
+                    geometry.visibleRight,
+                    geometry.visibleBottom,
+                ),
+            )
         } catch (throwable: Throwable) {
             if (!output.isRecycled) {
                 output.recycle()
