@@ -10,41 +10,111 @@ import androidx.exifinterface.media.ExifInterface
 import io.github.goroyattemiyo.wallpaperfitslideshow.core.render.DecodeSampleCalculator
 import java.io.IOException
 
+data class SourceImageInfo(
+    val rawWidth: Int,
+    val rawHeight: Int,
+    val orientation: Int,
+    val logicalWidth: Int,
+    val logicalHeight: Int,
+) {
+    val swapsAxes: Boolean
+        get() = orientation in SWAPPED_ORIENTATIONS
+
+    companion object {
+        private val SWAPPED_ORIENTATIONS = setOf(
+            ExifInterface.ORIENTATION_TRANSPOSE,
+            ExifInterface.ORIENTATION_ROTATE_90,
+            ExifInterface.ORIENTATION_TRANSVERSE,
+            ExifInterface.ORIENTATION_ROTATE_270,
+        )
+    }
+}
+
+data class LoadedSourceBitmap(
+    val bitmap: Bitmap,
+    val info: SourceImageInfo,
+    val sampleSize: Int,
+)
+
 class SourceBitmapLoader(
     context: Context,
 ) {
     private val contentResolver: ContentResolver = context.contentResolver
 
     @Throws(SourceImageException::class)
-    fun load(
-        uriString: String,
-        maxDecodePixels: Long = DecodeSampleCalculator.DEFAULT_MAX_DECODE_PIXELS,
-    ): Bitmap {
-        val uri = runCatching { Uri.parse(uriString) }
-            .getOrElse { throw SourceUnavailableException("画像URIが不正です。", it) }
-
+    fun inspect(uriString: String): SourceImageInfo {
+        val uri = parseUri(uriString)
         val bounds = decodeBounds(uri)
         val orientation = readOrientation(uri)
+        val swapsAxes = orientation in setOf(
+            ExifInterface.ORIENTATION_TRANSPOSE,
+            ExifInterface.ORIENTATION_ROTATE_90,
+            ExifInterface.ORIENTATION_TRANSVERSE,
+            ExifInterface.ORIENTATION_ROTATE_270,
+        )
+
+        return SourceImageInfo(
+            rawWidth = bounds.first,
+            rawHeight = bounds.second,
+            orientation = orientation,
+            logicalWidth = if (swapsAxes) bounds.second else bounds.first,
+            logicalHeight = if (swapsAxes) bounds.first else bounds.second,
+        )
+    }
+
+    @Throws(SourceImageException::class)
+    fun load(
+        uriString: String,
+        info: SourceImageInfo = inspect(uriString),
+        preferredMinLogicalWidth: Int = 0,
+        preferredMinLogicalHeight: Int = 0,
+        maxDecodePixels: Long = DecodeSampleCalculator.DEFAULT_MAX_DECODE_PIXELS,
+    ): LoadedSourceBitmap {
+        val uri = parseUri(uriString)
+
+        val preferredRawWidth = if (info.swapsAxes) {
+            preferredMinLogicalHeight
+        } else {
+            preferredMinLogicalWidth
+        }
+        val preferredRawHeight = if (info.swapsAxes) {
+            preferredMinLogicalWidth
+        } else {
+            preferredMinLogicalHeight
+        }
+
         val sampleSize = DecodeSampleCalculator.calculate(
-            width = bounds.first,
-            height = bounds.second,
+            width = info.rawWidth,
+            height = info.rawHeight,
+            preferredMinWidth = preferredRawWidth,
+            preferredMinHeight = preferredRawHeight,
             maxPixels = maxDecodePixels,
         )
         val decoded = decodeBitmap(uri, sampleSize)
 
-        return try {
-            val upright = applyExifOrientation(decoded, orientation)
-            if (upright !== decoded && !decoded.isRecycled) {
-                decoded.recycle()
-            }
-            upright
+        val upright = try {
+            applyExifOrientation(decoded, info.orientation)
         } catch (throwable: Throwable) {
             if (!decoded.isRecycled) {
                 decoded.recycle()
             }
             throw DecodeException("画像の向きを補正できませんでした。", throwable)
         }
+
+        if (upright !== decoded && !decoded.isRecycled) {
+            decoded.recycle()
+        }
+
+        return LoadedSourceBitmap(
+            bitmap = upright,
+            info = info,
+            sampleSize = sampleSize,
+        )
     }
+
+    private fun parseUri(uriString: String): Uri =
+        runCatching { Uri.parse(uriString) }
+            .getOrElse { throw SourceUnavailableException("画像URIが不正です。", it) }
 
     private fun decodeBounds(uri: Uri): Pair<Int, Int> {
         val options = BitmapFactory.Options().apply {

@@ -74,15 +74,20 @@ class ImageEditorActivity : Activity() {
             }
             runOnUiThread {
                 if (isFinishing || isDestroyed) {
-                    result.getOrNull()?.let { bitmap ->
+                    result.getOrNull()?.bitmap?.let { bitmap ->
                         if (!bitmap.isRecycled) {
                             bitmap.recycle()
                         }
                     }
                     return@runOnUiThread
                 }
-                result.onSuccess(preview::setBitmap)
-                    .onFailure {
+                result.onSuccess { loaded ->
+                    preview.setBitmap(
+                        value = loaded.bitmap,
+                        sourceWidth = loaded.info.logicalWidth,
+                        sourceHeight = loaded.info.logicalHeight,
+                    )
+                }.onFailure {
                         Toast.makeText(
                             this,
                             it.message ?: "画像を読み込めませんでした。",

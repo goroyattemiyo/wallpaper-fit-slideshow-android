@@ -44,6 +44,8 @@ class WallpaperPreviewView @JvmOverloads constructor(
     )
 
     private var bitmap: Bitmap? = null
+    private var logicalSourceWidth = 0
+    private var logicalSourceHeight = 0
     private var targetWidth = 9
     private var targetHeight = 20
     private var lastX = 0f
@@ -59,9 +61,15 @@ class WallpaperPreviewView @JvmOverloads constructor(
         requestLayout()
     }
 
-    fun setBitmap(value: Bitmap) {
+    fun setBitmap(
+        value: Bitmap,
+        sourceWidth: Int = value.width,
+        sourceHeight: Int = value.height,
+    ) {
         val old = bitmap
         bitmap = value
+        logicalSourceWidth = sourceWidth.coerceAtLeast(1)
+        logicalSourceHeight = sourceHeight.coerceAtLeast(1)
         if (old !== value && old != null && !old.isRecycled) {
             old.recycle()
         }
@@ -132,8 +140,8 @@ class WallpaperPreviewView @JvmOverloads constructor(
 
         val transform = LayoutCalculator.calculate(
             LayoutRequest(
-                sourceWidth = source.width,
-                sourceHeight = source.height,
+                sourceWidth = logicalSourceWidth.coerceAtLeast(1),
+                sourceHeight = logicalSourceHeight.coerceAtLeast(1),
                 targetWidth = width.coerceAtLeast(1),
                 targetHeight = height.coerceAtLeast(1),
                 mode = layoutState.mode,
@@ -205,8 +213,8 @@ class WallpaperPreviewView @JvmOverloads constructor(
 
         val transform = LayoutCalculator.calculate(
             LayoutRequest(
-                sourceWidth = source.width,
-                sourceHeight = source.height,
+                sourceWidth = logicalSourceWidth.coerceAtLeast(1),
+                sourceHeight = logicalSourceHeight.coerceAtLeast(1),
                 targetWidth = width,
                 targetHeight = height,
                 mode = LayoutMode.CROP,

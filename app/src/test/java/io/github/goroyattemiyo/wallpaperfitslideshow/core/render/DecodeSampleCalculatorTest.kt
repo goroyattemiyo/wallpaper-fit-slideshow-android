@@ -14,15 +14,38 @@ class DecodeSampleCalculatorTest {
     }
 
     @Test
-    fun samplesVeryLargeImagesByPowerOfTwo() {
+    fun samplesVeryLargeImagesToMemoryCap() {
         val sample = DecodeSampleCalculator.calculate(
             width = 12000,
             height = 9000,
         )
 
-        assertTrue(sample == 2 || sample == 4 || sample == 8)
         val decodedPixels =
             (12000 / sample).toLong() * (9000 / sample).toLong()
         assertTrue(decodedPixels <= DecodeSampleCalculator.DEFAULT_MAX_DECODE_PIXELS)
+    }
+
+    @Test
+    fun preservesEnoughResolutionWhenPreferredSizeRequiresIt() {
+        val sample = DecodeSampleCalculator.calculate(
+            width = 4000,
+            height = 3000,
+            preferredMinWidth = 2160,
+            preferredMinHeight = 1600,
+        )
+
+        assertEquals(1, sample)
+    }
+
+    @Test
+    fun usesPowerOfTwoSamplingWhenQualityAllowsIt() {
+        val sample = DecodeSampleCalculator.calculate(
+            width = 8000,
+            height = 6000,
+            preferredMinWidth = 1800,
+            preferredMinHeight = 1300,
+        )
+
+        assertEquals(4, sample)
     }
 }
