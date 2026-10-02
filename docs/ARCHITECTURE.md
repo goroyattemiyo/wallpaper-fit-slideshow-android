@@ -39,6 +39,13 @@ Android adapters
 大規模なClean Architecture化は行わない。
 責務分離に必要な最小レイヤのみ作る。
 
+## UI Technology
+
+V1は標準Android Viewsを使用する。
+Composeは採用しない。UI規模に対して依存・起動コストを増やさず、軽量性を優先する。
+
+minSdkはAPI 24とする。compileSdk / targetSdkはscaffold時点の最新安定版とAGP互換性を公式情報で確認して決定する。
+
 ## Main Components
 
 ### MainActivity
@@ -136,12 +143,12 @@ WorkManagerを隔離する。
 
 V1では小さい永続データのみ扱う。
 
-候補:
-- app-private JSON file
-- SharedPreferences + schema version
+V1は app-private JSON を `AtomicFile` で保存し、schemaVersionを持たせる。
 
-RoomはV1では使用しない。
-DataStore等を導入する場合は必要性と依存コストを確認してから決定する。
+- Android標準API中心
+- crash途中の破損を避けるためAtomicFileを使用
+- Room / DataStoreはV1では使用しない
+- 保存件数や要件が増えた場合のみ再評価する。
 
 ## Data Model
 

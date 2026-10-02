@@ -45,6 +45,7 @@
 
 - アスペクト比を維持
 - 画像の切り落としをしない
+- デフォルトでは元画像を100%より大きく拡大しない（no-upscale）
 - 余白は背景色で埋める
 - ユーザー指定背景色
 - 自動背景色はV1候補。実装負担が大きい場合はV1.1へ送る
@@ -169,7 +170,7 @@ V1ではインターネット通信を必要としない。
 
 ### Contain
 
-`scale = min(targetWidth / imageWidth, targetHeight / imageHeight)`
+`scale = min(1.0, min(targetWidth / imageWidth, targetHeight / imageHeight))`
 
 余白へ背景色を描画し、その上へ画像全体を描画する。
 
@@ -223,6 +224,7 @@ V1では行わない。
 - [ ] 2枚以上を選択できる
 - [ ] 再起動後も選択画像へアクセスできる
 - [ ] CONTAINで画像全体が欠けない
+- [ ] CONTAINで低解像度画像を自動アップスケールしない
 - [ ] 背景色で余白を埋められる
 - [ ] CROPでユーザーが倍率と位置を変更できる
 - [ ] 画像ごとの調整値が復元される
@@ -252,8 +254,8 @@ V1では行わない。
 実装開始前または実装中に確認する。
 
 - package name
-- minSdk: API 24を第一候補
+- minSdk: API 24
 - compileSdk / targetSdk: 実装開始時点の最新安定版とAGP互換性を公式情報で確認
-- UI: 軽量性を優先し、標準Android Viewsを第一候補
+- UI: 標準Android Viewsを採用
 - 自動背景色をV1に含めるか
 - OSS license

@@ -41,7 +41,8 @@ V1の仕様・アーキテクチャを確定してからAndroid実装へ入る�
 
 - [ ] license決定
 - [ ] package name決定
-- [ ] minSdk / targetSdk最終決定
+- [x] minSdk決定: API 24
+- [ ] compileSdk / targetSdk最終決定
 - [ ] Android project scaffold
 - [ ] renderer実装
 - [ ] layout editor実装
@@ -73,6 +74,9 @@ V1の仕様・アーキテクチャを確定してからAndroid実装へ入る�
 - networkなし
 - broad storage permissionなし
 - 画像は1枚ずつ処理
+- CONTAINはno-upscaleをデフォルトとする
+- UIは標準Android Views
+- 設定保存はapp-private JSON + AtomicFile
 - Fit/Contain + background color と manual CropをV1の核とする
 - blur backgroundはV1 non-goal
 - Redmi 12 5G / HyperOSを初期実機基準にする
@@ -91,7 +95,7 @@ V1の仕様・アーキテクチャを確定してからAndroid実装へ入る�
 ## Next Action
 
 1. Design PRをレビュー
-2. package / SDK方針を確定
+2. package name / compileSdk / targetSdkを確定
 3. 最小Android projectをscaffold
 4. LayoutCalculatorから実装開始
 
