@@ -13,6 +13,8 @@ import io.github.goroyattemiyo.wallpaperfitslideshow.core.layout.LayoutMode
 import io.github.goroyattemiyo.wallpaperfitslideshow.data.SettingsStore
 import io.github.goroyattemiyo.wallpaperfitslideshow.ui.WallpaperPreviewView
 import io.github.goroyattemiyo.wallpaperfitslideshow.wallpaper.SourceBitmapLoader
+import io.github.goroyattemiyo.wallpaperfitslideshow.wallpaper.WallpaperOperationResult
+import io.github.goroyattemiyo.wallpaperfitslideshow.wallpaper.WallpaperOperationService
 import io.github.goroyattemiyo.wallpaperfitslideshow.wallpaper.WallpaperTargetSizeResolver
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -21,6 +23,7 @@ class ImageEditorActivity : Activity() {
     private lateinit var settingsStore: SettingsStore
     private lateinit var preview: WallpaperPreviewView
     private lateinit var titleText: TextView
+    private lateinit var operationService: WallpaperOperationService
     private val executor: ExecutorService = Executors.newSingleThreadExecutor()
 
     private var itemId: String? = null
@@ -30,6 +33,7 @@ class ImageEditorActivity : Activity() {
         setContentView(R.layout.activity_image_editor)
 
         settingsStore = SettingsStore(applicationContext)
+        operationService = WallpaperOperationService(applicationContext)
         preview = findViewById(R.id.wallpaper_preview)
         titleText = findViewById(R.id.editor_title)
 
@@ -63,6 +67,9 @@ class ImageEditorActivity : Activity() {
         }
         findViewById<Button>(R.id.save_button).setOnClickListener {
             saveAndFinish()
+        }
+        findViewById<Button>(R.id.apply_button).setOnClickListener {
+            saveAndApply()
         }
         findViewById<Button>(R.id.cancel_button).setOnClickListener {
             finish()
@@ -107,8 +114,8 @@ class ImageEditorActivity : Activity() {
         super.onDestroy()
     }
 
-    private fun saveAndFinish() {
-        val id = itemId ?: return
+    private fun saveLayout(): String? {
+        val id = itemId ?: return null
         settingsStore.update { settings ->
             settings.copy(
                 items = settings.items.map { item ->
@@ -120,8 +127,37 @@ class ImageEditorActivity : Activity() {
                 },
             )
         }
+        return id
+    }
+
+    private fun saveAndFinish() {
+        if (saveLayout() == null) {
+            return
+        }
         Toast.makeText(this, "表示設定を保存しました。", Toast.LENGTH_SHORT).show()
         finish()
+    }
+
+    private fun saveAndApply() {
+        val id = saveLayout() ?: return
+        Toast.makeText(this, "壁紙へ適用しています…", Toast.LENGTH_SHORT).show()
+
+        executor.execute {
+            val result = operationService.applyItem(id)
+            runOnUiThread {
+                if (isFinishing || isDestroyed) {
+                    return@runOnUiThread
+                }
+                val message = when (result) {
+                    is WallpaperOperationResult.Success -> "この画像を壁紙へ適用しました。"
+                    is WallpaperOperationResult.Failure -> result.message
+                    WallpaperOperationResult.Busy -> "別の壁紙変更処理が実行中です。"
+                    WallpaperOperationResult.Disabled -> "壁紙変更が無効です。"
+                    WallpaperOperationResult.NoImages -> "画像設定が見つかりません。"
+                }
+                Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+            }
+        }
     }
 
     private fun showBackgroundColorDialog() {

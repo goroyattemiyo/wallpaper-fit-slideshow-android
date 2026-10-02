@@ -102,8 +102,8 @@ Failure notes:
 Test first with "ホーム".
 
 - [ ] Adjust an image in preview
-- [ ] Press "次へ"
-- [ ] Wallpaper changes
+- [ ] Press "壁紙に適用"
+- [ ] The same edited image becomes the wallpaper
 - [ ] Subject position is close to preview
 - [ ] No unexpected strong zoom occurs
 - [ ] No obvious clipping that was not shown in preview

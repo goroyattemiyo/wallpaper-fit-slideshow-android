@@ -19,6 +19,16 @@ class WallpaperOperationService(
         } ?: WallpaperOperationResult.Busy
     }
 
+    fun applyItem(itemId: String): WallpaperOperationResult {
+        return WallpaperOperationGate.tryRun {
+            val settings = settingsStore.load()
+            val item = settings.items.firstOrNull { it.id == itemId && it.enabled }
+                ?: return@tryRun WallpaperOperationResult.NoImages
+
+            applyExactItem(item)
+        } ?: WallpaperOperationResult.Busy
+    }
+
     private fun performApplyNext(
         requireSlideshowEnabled: Boolean,
     ): WallpaperOperationResult {
@@ -96,6 +106,55 @@ class WallpaperOperationService(
         val message = lastRenderError ?: "使用できる画像がありません。"
         persistError(message)
         return WallpaperOperationResult.Failure(message)
+    }
+
+    private fun applyExactItem(
+        item: io.github.goroyattemiyo.wallpaperfitslideshow.model.WallpaperItem,
+    ): WallpaperOperationResult {
+        val rendered = try {
+            renderer.render(
+                item = item,
+                geometry = targetSizeResolver.resolve(),
+            )
+        } catch (exception: WallpaperRenderer.RenderException) {
+            val message = exception.message ?: "画像を処理できませんでした。"
+            persistError(message)
+            return WallpaperOperationResult.Failure(message)
+        }
+
+        val latest = settingsStore.load()
+        if (latest.items.none { it.id == item.id && it.enabled }) {
+            if (!rendered.bitmap.isRecycled) {
+                rendered.bitmap.recycle()
+            }
+            return WallpaperOperationResult.NoImages
+        }
+
+        try {
+            applier.apply(
+                bitmap = rendered.bitmap,
+                visibleCropHint = rendered.visibleCropHint,
+                target = latest.target,
+            )
+        } catch (exception: WallpaperApplier.ApplyException) {
+            val message = exception.message ?: "壁紙を適用できませんでした。"
+            persistError(message)
+            return WallpaperOperationResult.Failure(message)
+        } finally {
+            if (!rendered.bitmap.isRecycled) {
+                rendered.bitmap.recycle()
+            }
+        }
+
+        val now = System.currentTimeMillis()
+        settingsStore.update {
+            it.copy(
+                currentItemId = item.id,
+                lastSuccessEpochMillis = now,
+                lastError = null,
+            )
+        }
+        return WallpaperOperationResult.Success(item.id)
     }
 
     private fun persistError(message: String) {
