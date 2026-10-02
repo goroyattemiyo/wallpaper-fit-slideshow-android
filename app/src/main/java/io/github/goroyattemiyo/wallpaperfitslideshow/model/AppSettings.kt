@@ -24,6 +24,7 @@ data class WallpaperLayoutState(
 data class WallpaperItem(
     val id: String,
     val uri: String,
+    val displayName: String,
     val order: Int,
     val enabled: Boolean = true,
     val layout: WallpaperLayoutState = WallpaperLayoutState(),

@@ -61,6 +61,7 @@ class SettingsStore(context: Context) {
                     JSONObject()
                         .put("id", item.id)
                         .put("uri", item.uri)
+                        .put("displayName", item.displayName)
                         .put("order", item.order)
                         .put("enabled", item.enabled)
                         .put(
@@ -136,6 +137,10 @@ class SettingsStore(context: Context) {
                     WallpaperItem(
                         id = id,
                         uri = uri,
+                        displayName = objectValue
+                            .optString("displayName")
+                            .takeIf { it.isNotBlank() }
+                            ?: "画像 ${index + 1}",
                         order = objectValue.optInt("order", index),
                         enabled = objectValue.optBoolean("enabled", true),
                         layout = layout,

@@ -10,9 +10,9 @@ import org.junit.Test
 
 class SlideshowSelectorTest {
     private val items = listOf(
-        WallpaperItem(id = "a", uri = "content://a", order = 0),
-        WallpaperItem(id = "b", uri = "content://b", order = 1),
-        WallpaperItem(id = "c", uri = "content://c", order = 2),
+        WallpaperItem(id = "a", uri = "content://a", displayName = "A", order = 0),
+        WallpaperItem(id = "b", uri = "content://b", displayName = "B", order = 1),
+        WallpaperItem(id = "c", uri = "content://c", displayName = "C", order = 2),
     )
 
     @Test
