@@ -99,7 +99,6 @@
             android:id="@+id/detail_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:maxLines="2"
             android:textStyle="bold" />
 
         <TextView
