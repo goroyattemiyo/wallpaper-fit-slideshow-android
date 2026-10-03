@@ -425,12 +425,12 @@ Use an image where launcher icons are hard to read.
 
 Add the Wallpaper Fit control widget to the launcher.
 
-- [ ] Widget can be added on Redmi / HyperOS
+- [x] Widget can be added on Redmi / HyperOS
 - [ ] Widget shows the current Home image filename
 - [ ] Widget shows current Zoom and Home Blur
 - [ ] Zoom + changes only the current Home image
 - [ ] Zoom - changes only the current Home image
-- [ ] 100% returns current Home image userScale to 1.0
+- [ ] RESET returns current Home image userScale to 1.0
 - [ ] Blur + increments global Home blur
 - [ ] Blur - decrements global Home blur and stops at 0
 - [ ] Lock blur value is not changed by widget actions
@@ -489,3 +489,24 @@ Widget:
 - [ ] Editor visual review on Redmi
 - [ ] Widget placement flow
 - [ ] Widget control behavior
+
+
+### Widget control regression - 2026-10-03
+
+Observed on Redmi / HyperOS before the current control fix:
+
+- [x] Widget placement succeeds
+- [ ] Zoom - / + respond correctly
+- [ ] Zoom RESET responds correctly
+- [ ] Blur - / + respond correctly
+- [ ] Pseudo slider bar moves immediately when a value changes
+
+Observed symptom:
+
+- old widget control build did not provide reliable - / + / RESET behavior on-device
+
+Current fix to verify:
+
+- controls changed back to RemoteViews Button
+- each control PendingIntent now has a unique action + requestCode + data URI
+- widget text/bar state updates immediately after settings mutation, before wallpaper re-render completes
