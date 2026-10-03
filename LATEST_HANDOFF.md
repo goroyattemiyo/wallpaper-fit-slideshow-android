@@ -535,3 +535,36 @@ Verification still required:
 - Unit/Lint/assemble/install after this fix: NOT YET RUN
 - Redmi - / + / RESET behavior after this fix: NOT YET VERIFIED
 - CI: NOT RUN
+
+
+## Widget Debounced Apply - 2026-10-03
+
+Root cause identified from Redmi / HyperOS behavior:
+
+- widget control broadcasts and heavy wallpaper decode/render/apply were sharing one single-thread executor
+- while one apply was running, later +/-/RESET taps queued behind it
+- this made the widget appear unresponsive or extremely slow during repeated taps
+
+Current fix:
+
+- widget control processing and wallpaper apply are now separate execution paths
+- control path only mutates SettingsStore and refreshes RemoteViews
+- wallpaper apply is scheduled separately with a 250 ms debounce
+- rapid taps cancel the latest not-yet-started apply, so the final state is rendered instead of every intermediate state
+- if WallpaperOperationGate returns Busy, apply retries up to 3 times at 300 ms intervals
+- generation tracking discards stale retries after a newer widget operation arrives
+- no new dependency, service, polling, or CI usage added
+
+Expected behavior to verify:
+
+- Zoom/Blur numbers and pseudo slider should react quickly to every tap
+- rapid +/- taps should not queue one full bitmap render per tap
+- wallpaper may visually follow after the short debounce/render time
+- final wallpaper should match the latest displayed widget value
+
+Verification status:
+
+- static source review pending final check
+- Unit/Lint/assemble/install after debounce fix: NOT YET RUN
+- Redmi response/latency after debounce fix: NOT YET VERIFIED
+- CI: NOT RUN
