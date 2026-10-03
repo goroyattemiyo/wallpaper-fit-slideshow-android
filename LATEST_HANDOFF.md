@@ -18,7 +18,7 @@ V1の仕様・アーキテクチャを確定してからAndroid実装へ入る�
 
 ## Current Status
 
-- Status: implemented-unverified
+- Status: new-feature-implementation-unverified
 - Android project scaffold: checked
 - V1 functional path: implemented-unverified
 - CI: not configured / not run
@@ -94,7 +94,8 @@ V1の仕様・アーキテクチャを確定してからAndroid実装へ入る�
 - [x] Android公式 Storage Access Framework / persistable URI確認
 - [x] Pure Kotlin core smoke check: PASS (layout / selector / decode / geometry)
 - [x] WallpaperManager / WorkManager / SAF APIs reviewed against Android official docs
-- [x] Android Gradle compile: PASS (2026-10-03, Windows local)
+- [x] Previous baseline Android Gradle compile: PASS (2026-10-03, Windows local)
+- [ ] Current branch after target-selection/crop/blur/folder/ZIP changes: recompile pending
 - [x] unit test: PASS (`testDebugUnitTest`, 2026-10-03)
 - [ ] integration test
 - [ ] CI

@@ -250,3 +250,78 @@ This can take time because WorkManager scheduling is not exact.
 ### Screenshots / logs
 
 -
+
+
+## 14. Slideshow Target Selection
+
+- [ ] Checkbox ON means slideshow target
+- [ ] Checkbox OFF keeps the image in the library but excludes it from Next/automatic slideshow
+- [ ] "すべてON" enables all images
+- [ ] "すべてOFF" disables all images and stops automatic slideshow
+- [ ] Start button shows the target image count
+- [ ] Row tap selects the image for edit without changing slideshow ON/OFF
+- [ ] An OFF image can still be opened in the editor and "この1枚を今すぐ壁紙にする" works
+
+## 15. Shrink / Position
+
+- [ ] Crop can shrink below 100%
+- [ ] Crop can enlarge above 100%
+- [ ] Pinch can both shrink and enlarge
+- [ ] Zoom slider works from 20% to 500%
+- [ ] Vertical position slider moves the image upward/downward
+- [ ] Dragging works in CONTAIN and CROP
+- [ ] A smaller image can be placed toward top/bottom without being forced to center
+- [ ] Saved scale/position restores after closing editor
+
+Clock/notification visibility check:
+
+- [ ] Position a subject away from the lock-screen clock
+- [ ] Apply to lock screen
+- [ ] Confirm actual HyperOS clock overlap and record any preview difference
+
+## 16. Blur Background
+
+- [ ] Background style can switch between solid and blurred image
+- [ ] Blur amount changes visibly
+- [ ] Background image transparency changes visibly
+- [ ] Foreground image remains sharp
+- [ ] Settings survive editor reopen
+- [ ] Actual wallpaper is close to preview
+
+## 17. Folder Import
+
+- [ ] "フォルダ" opens Android folder picker
+- [ ] Selecting a folder adds image files from that tree
+- [ ] Images in subfolders are also found
+- [ ] App restart retains access to folder-backed images
+- [ ] Non-image files are ignored
+
+Note: Android 11+ SAF intentionally blocks selecting some protected roots such as storage root and Android/data. This is platform behavior.
+
+## 18. ZIP Import
+
+Use a test ZIP containing images plus non-image files.
+
+- [ ] "ZIP" opens document picker
+- [ ] Supported image files are imported
+- [ ] Non-image files are ignored
+- [ ] Imported images still work after app restart
+- [ ] Removing an imported image does not affect the original ZIP
+- [ ] Oversized ZIP/image fails safely without crashing
+
+Current safety limits:
+
+- up to 500 images
+- up to 50 MiB per extracted image
+- up to 500 MiB total extraction
+
+## 19. Seconds Interval
+
+Not implemented for background slideshow in this build.
+
+Reason:
+- Periodic WorkManager has a 15-minute minimum
+- exact alarms are intended for genuinely time-critical user-facing actions
+- a seconds-level persistent implementation would require a materially heavier always-running design
+
+If seconds-level switching remains a product requirement, evaluate it as a separate explicit mode rather than silently weakening battery behavior.
