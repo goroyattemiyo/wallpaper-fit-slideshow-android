@@ -473,3 +473,30 @@ Verification status:
 - Unit/Lint/assemble/install after UI polish: NOT YET RUN
 - Redmi visual/widget pin verification: NOT YET RUN
 - CI: NOT RUN
+
+
+## Local Verification Pass - UI Polish Build
+
+User ran:
+
+`powershell -ExecutionPolicy Bypass -File .\scripts\local-verify.ps1 -Install`
+
+Observed final result:
+
+- Unit tests: PASS
+- Android lint: PASS
+- assembleDebug: PASS
+- APK install via ADB: PASS
+- Device install output: `Success`
+- GitHub Actions: NOT RUN
+
+Reason these are recorded as PASS:
+`local-verify.ps1` executes Unit -> Lint -> assembleDebug -> install in order and throws immediately on any non-zero exit. The script reached and completed the install stage.
+
+Still not yet verified for this UI batch:
+
+- Redmi visual layout quality
+- Settings Widget pin flow
+- Widget button behavior after placement
+- Home/Lock blur visual result after the latest UI-only changes
+- editor layout clipping on device

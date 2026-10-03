@@ -476,3 +476,16 @@ Widget:
 - [ ] Zoom - / + / RESET are tappable
 - [ ] Blur - / + are tappable
 - [ ] Widget still has no periodic update/polling
+
+
+## 27. Latest Local Verification
+
+- [x] testDebugUnitTest
+- [x] lintDebug
+- [x] assembleDebug
+- [x] debug APK installed with adb
+- [ ] Main screen visual review on Redmi
+- [ ] Settings visual review on Redmi
+- [ ] Editor visual review on Redmi
+- [ ] Widget placement flow
+- [ ] Widget control behavior
