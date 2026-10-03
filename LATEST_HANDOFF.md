@@ -317,3 +317,27 @@ Verification status:
 - static review performed
 - unit/lint/build/install for this batch: NOT YET VERIFIED
 - CI: NOT RUN
+
+
+## Static Review - Home / Lock Split Batch
+
+Static review completed after the Home/Lock split implementation:
+
+- old single `WallpaperItem.enabled` references: none in reviewed runtime files
+- old single `WallpaperItem.layout` references: none in reviewed runtime files
+- old `settings.target` references: none in reviewed runtime files
+- old `settings.currentItemId` references: none in reviewed runtime files
+- renderer call sites reviewed for new explicit layout parameter
+- MainActivity layout IDs: no missing IDs
+- ImageEditorActivity layout IDs: no missing IDs
+- WallpaperItemAdapter layout IDs: no missing IDs
+- escaped Kotlin interpolation artifacts: none in reviewed runtime files
+
+Current verification status remains:
+
+- static review: PASS
+- unit tests: NOT YET RUN for this batch
+- lint: NOT YET RUN for this batch
+- assembleDebug: NOT YET RUN for this batch
+- Redmi install / behavior: NOT YET VERIFIED for this batch
+- GitHub Actions: NOT RUN
