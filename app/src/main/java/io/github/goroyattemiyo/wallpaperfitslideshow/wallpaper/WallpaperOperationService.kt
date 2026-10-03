@@ -22,7 +22,7 @@ class WallpaperOperationService(
     fun applyItem(itemId: String): WallpaperOperationResult {
         return WallpaperOperationGate.tryRun {
             val settings = settingsStore.load()
-            val item = settings.items.firstOrNull { it.id == itemId && it.enabled }
+            val item = settings.items.firstOrNull { it.id == itemId }
                 ?: return@tryRun WallpaperOperationResult.NoImages
 
             applyExactItem(item)
@@ -123,7 +123,7 @@ class WallpaperOperationService(
         }
 
         val latest = settingsStore.load()
-        if (latest.items.none { it.id == item.id && it.enabled }) {
+        if (latest.items.none { it.id == item.id }) {
             if (!rendered.bitmap.isRecycled) {
                 rendered.bitmap.recycle()
             }

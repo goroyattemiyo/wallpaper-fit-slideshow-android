@@ -31,6 +31,9 @@ class WallpaperItemAdapter(
         notifyDataSetChanged()
     }
 
+    fun indexOfItemId(itemId: String?): Int =
+        items.indexOfFirst { it.id == itemId }
+
     override fun getCount(): Int = items.size
 
     override fun getItem(position: Int): WallpaperItem = items[position]

@@ -489,7 +489,7 @@ class MainActivity : Activity() {
             selectedItemId = selectedItemId,
         )
 
-        val selectedIndex = settings.items.indexOfFirst { it.id == selectedItemId }
+        val selectedIndex = itemAdapter.indexOfItemId(selectedItemId)
         if (selectedIndex >= 0) {
             imageList.setItemChecked(selectedIndex, true)
         } else {
