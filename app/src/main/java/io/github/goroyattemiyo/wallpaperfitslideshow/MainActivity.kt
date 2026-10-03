@@ -6,6 +6,7 @@ import android.database.Cursor
 import android.net.Uri
 import android.os.Bundle
 import android.provider.OpenableColumns
+import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.ListView
@@ -15,6 +16,8 @@ import io.github.goroyattemiyo.wallpaperfitslideshow.data.FolderImageScanner
 import io.github.goroyattemiyo.wallpaperfitslideshow.data.ImportedImageSource
 import io.github.goroyattemiyo.wallpaperfitslideshow.data.SettingsStore
 import io.github.goroyattemiyo.wallpaperfitslideshow.data.ZipImageImporter
+import io.github.goroyattemiyo.wallpaperfitslideshow.core.layout.LayoutMode
+import io.github.goroyattemiyo.wallpaperfitslideshow.model.BackgroundMode
 import io.github.goroyattemiyo.wallpaperfitslideshow.ui.WallpaperItemAdapter
 import io.github.goroyattemiyo.wallpaperfitslideshow.model.AppSettings
 import io.github.goroyattemiyo.wallpaperfitslideshow.model.OrderMode
@@ -34,6 +37,9 @@ class MainActivity : Activity() {
     private lateinit var imageList: ListView
     private lateinit var statusText: TextView
     private lateinit var settingsSummaryText: TextView
+    private lateinit var detailCard: View
+    private lateinit var detailTitle: TextView
+    private lateinit var detailState: TextView
     private lateinit var itemAdapter: WallpaperItemAdapter
     private lateinit var startButton: Button
     private lateinit var nextButton: Button
@@ -53,11 +59,14 @@ class MainActivity : Activity() {
         imageList = findViewById(R.id.image_list)
         statusText = findViewById(R.id.status_text)
         settingsSummaryText = findViewById(R.id.slideshow_settings_summary)
+        detailCard = findViewById(R.id.detail_card)
+        detailTitle = findViewById(R.id.detail_title)
+        detailState = findViewById(R.id.detail_state)
         startButton = findViewById(R.id.start_button)
         nextButton = findViewById(R.id.next_button)
         itemAdapter = WallpaperItemAdapter(
             context = this,
-            onEnabledChanged = ::setItemEnabled,
+            onTargetChanged = ::setItemTargetEnabled,
         )
         imageList.adapter = itemAdapter
 
@@ -75,6 +84,9 @@ class MainActivity : Activity() {
 
     override fun onDestroy() {
         executor.shutdownNow()
+        if (::itemAdapter.isInitialized) {
+            itemAdapter.release()
+        }
         super.onDestroy()
     }
 
@@ -84,11 +96,7 @@ class MainActivity : Activity() {
             val item = itemAdapter.getItem(position)
             selectedItemId = item.id
             imageList.setItemChecked(position, true)
-            itemAdapter.update(
-                items = settings.items,
-                currentItemId = settings.currentItemId,
-                selectedItemId = selectedItemId,
-            )
+            refreshUi()
         }
     }
 
@@ -142,9 +150,6 @@ class MainActivity : Activity() {
         val orderSpinner = dialogView.findViewById<android.widget.Spinner>(
             R.id.dialog_order_spinner,
         )
-        val targetSpinner = dialogView.findViewById<android.widget.Spinner>(
-            R.id.dialog_target_spinner,
-        )
         val intervalSpinner = dialogView.findViewById<android.widget.Spinner>(
             R.id.dialog_interval_spinner,
         )
@@ -152,22 +157,12 @@ class MainActivity : Activity() {
         orderSpinner.adapter = simpleSpinnerAdapter(
             listOf("順番", "ランダム"),
         )
-        targetSpinner.adapter = simpleSpinnerAdapter(
-            listOf("ホーム", "ロック", "両方"),
-        )
         intervalSpinner.adapter = simpleSpinnerAdapter(
             INTERVALS.map { it.label },
         )
 
         orderSpinner.setSelection(
             if (settings.orderMode == OrderMode.RANDOM) 1 else 0,
-        )
-        targetSpinner.setSelection(
-            when (settings.target) {
-                WallpaperTarget.HOME -> 0
-                WallpaperTarget.LOCK -> 1
-                WallpaperTarget.BOTH -> 2
-            },
         )
         intervalSpinner.setSelection(
             INTERVALS.indexOfFirst {
@@ -184,11 +179,6 @@ class MainActivity : Activity() {
                 } else {
                     OrderMode.SEQUENTIAL
                 }
-                val target = when (targetSpinner.selectedItemPosition) {
-                    0 -> WallpaperTarget.HOME
-                    1 -> WallpaperTarget.LOCK
-                    else -> WallpaperTarget.BOTH
-                }
                 val intervalSeconds = INTERVALS
                     .getOrElse(intervalSpinner.selectedItemPosition) {
                         INTERVALS[DEFAULT_INTERVAL_INDEX]
@@ -198,7 +188,6 @@ class MainActivity : Activity() {
                 settings = settingsStore.update {
                     it.copy(
                         orderMode = orderMode,
-                        target = target,
                         intervalSeconds = intervalSeconds,
                     )
                 }
@@ -473,22 +462,28 @@ class MainActivity : Activity() {
         }
     }
 
-    private fun setItemEnabled(
+    private fun setItemTargetEnabled(
         itemId: String,
+        target: WallpaperTarget,
         enabled: Boolean,
     ) {
         settings = settingsStore.update { current ->
             val updatedItems = current.items.map { item ->
-                if (item.id == itemId) item.copy(enabled = enabled) else item
+                if (item.id != itemId) {
+                    item
+                } else {
+                    when (target) {
+                        WallpaperTarget.HOME -> item.copy(homeEnabled = enabled)
+                        WallpaperTarget.LOCK -> item.copy(lockEnabled = enabled)
+                        WallpaperTarget.BOTH -> item
+                    }
+                }
             }
-            val enabledCount = updatedItems.count { it.enabled }
+            val canRun = updatedItems.count { it.homeEnabled } >= 2 ||
+                updatedItems.count { it.lockEnabled } >= 2
             current.copy(
                 items = updatedItems,
-                slideshowEnabled = current.slideshowEnabled && enabledCount >= 2,
-                currentItemId = current.currentItemId
-                    ?.takeIf { currentId ->
-                        updatedItems.any { it.id == currentId && it.enabled }
-                    },
+                slideshowEnabled = current.slideshowEnabled && canRun,
             )
         }
 
@@ -500,14 +495,17 @@ class MainActivity : Activity() {
 
     private fun setAllItemsEnabled(enabled: Boolean) {
         settings = settingsStore.update { current ->
-            val updatedItems = current.items.map { it.copy(enabled = enabled) }
+            val updatedItems = current.items.map {
+                it.copy(
+                    homeEnabled = enabled,
+                    lockEnabled = enabled,
+                )
+            }
             current.copy(
                 items = updatedItems,
-                slideshowEnabled = current.slideshowEnabled && enabled && updatedItems.size >= 2,
-                currentItemId = current.currentItemId
-                    ?.takeIf { currentId ->
-                        updatedItems.any { it.id == currentId && it.enabled }
-                    },
+                slideshowEnabled = current.slideshowEnabled &&
+                    enabled &&
+                    updatedItems.size >= 2,
             )
         }
 
@@ -582,10 +580,13 @@ class MainActivity : Activity() {
                 .filterNot { it.id == id }
                 .mapIndexed { index, value -> value.copy(order = index) }
 
+            val canRun = remaining.count { it.homeEnabled } >= 2 ||
+                remaining.count { it.lockEnabled } >= 2
             current.copy(
                 items = remaining,
-                slideshowEnabled = current.slideshowEnabled && remaining.count { it.enabled } >= 2,
-                currentItemId = current.currentItemId.takeUnless { it == id },
+                slideshowEnabled = current.slideshowEnabled && canRun,
+                currentHomeItemId = current.currentHomeItemId.takeUnless { it == id },
+                currentLockItemId = current.currentLockItemId.takeUnless { it == id },
             )
         }
         if (!settings.slideshowEnabled) {
@@ -616,8 +617,10 @@ class MainActivity : Activity() {
 
     private fun startSlideshow() {
         settings = settingsStore.load()
-        if (settings.items.count { it.enabled } < 2) {
-            toast("スライドショー対象を2枚以上チェックしてください。")
+        val homeCount = settings.items.count { it.homeEnabled }
+        val lockCount = settings.items.count { it.lockEnabled }
+        if (homeCount < 2 && lockCount < 2) {
+            toast("ホームまたはロックに2枚以上チェックしてください。")
             return
         }
 
@@ -646,7 +649,13 @@ class MainActivity : Activity() {
                     return@runOnUiThread
                 }
                 when (result) {
-                    is WallpaperOperationResult.Success -> toast("壁紙を変更しました。")
+                    is WallpaperOperationResult.Success -> {
+                        if (result.warnings.isEmpty()) {
+                            toast("壁紙を変更しました。")
+                        } else {
+                            toast("一部変更できませんでした: " + result.warnings.joinToString(" / "))
+                        }
+                    }
                     is WallpaperOperationResult.Failure -> toast(result.message)
                     WallpaperOperationResult.Busy -> toast("壁紙変更処理が実行中です。")
                     WallpaperOperationResult.Disabled -> Unit
@@ -659,10 +668,11 @@ class MainActivity : Activity() {
 
     private fun refreshUi() {
         settings = settingsStore.load()
+        if (selectedItemId != null && settings.items.none { it.id == selectedItemId }) {
+            selectedItemId = null
+        }
         settingsSummaryText.text = buildString {
             append(orderLabel(settings.orderMode))
-            append(" / ")
-            append(targetLabel(settings.target))
             append(" / ")
             append(formatInterval(settings.intervalSeconds))
             if (settings.intervalSeconds < AppSettings.WORK_MANAGER_MIN_INTERVAL_SECONDS) {
@@ -672,7 +682,6 @@ class MainActivity : Activity() {
 
         itemAdapter.update(
             items = settings.items,
-            currentItemId = settings.currentItemId,
             selectedItemId = selectedItemId,
         )
 
@@ -683,9 +692,11 @@ class MainActivity : Activity() {
             imageList.clearChoices()
         }
 
-        val enabledCount = settings.items.count { it.enabled }
-        startButton.text = "スライドショー開始（${enabledCount}枚）"
-        nextButton.text = "次へ（対象のみ）"
+        val homeCount = settings.items.count { it.homeEnabled }
+        val lockCount = settings.items.count { it.lockEnabled }
+        startButton.text = "開始（H${homeCount}/L${lockCount}）"
+        nextButton.text = "次へ"
+        updateDetailCard()
 
         statusText.text = buildString {
             append(
@@ -699,9 +710,11 @@ class MainActivity : Activity() {
                     "自動切替: OFF"
                 },
             )
-            append(" / 対象 ")
-            append(enabledCount)
-            append(" / ")
+            append(" / H ")
+            append(homeCount)
+            append(" / L ")
+            append(lockCount)
+            append(" / 全")
             append(settings.items.size)
             append("枚")
             settings.lastError?.let {
@@ -718,12 +731,47 @@ class MainActivity : Activity() {
     private fun orderLabel(mode: OrderMode): String =
         if (mode == OrderMode.RANDOM) "ランダム" else "順番"
 
-    private fun targetLabel(target: WallpaperTarget): String =
-        when (target) {
-            WallpaperTarget.HOME -> "ホーム"
-            WallpaperTarget.LOCK -> "ロック"
-            WallpaperTarget.BOTH -> "両方"
+    private fun updateDetailCard() {
+        val item = settings.items.firstOrNull { it.id == selectedItemId }
+        if (item == null) {
+            detailCard.visibility = View.GONE
+            return
         }
+
+        detailCard.visibility = View.VISIBLE
+        detailTitle.text = item.displayName
+        detailState.text = buildString {
+            append("ホーム: ")
+            append(if (item.homeEnabled) "ON" else "OFF")
+            append(" / ")
+            append(layoutLabel(item.homeLayout))
+            if (item.id == settings.currentHomeItemId) {
+                append(" / 現在")
+            }
+            append("\nロック: ")
+            append(if (item.lockEnabled) "ON" else "OFF")
+            append(" / ")
+            append(layoutLabel(item.lockLayout))
+            if (item.id == settings.currentLockItemId) {
+                append(" / 現在")
+            }
+        }
+    }
+
+    private fun layoutLabel(
+        layout: io.github.goroyattemiyo.wallpaperfitslideshow.model.WallpaperLayoutState,
+    ): String = buildString {
+        append(
+            if (layout.mode == LayoutMode.CONTAIN) {
+                "全体表示"
+            } else {
+                "調整済み"
+            },
+        )
+        if (layout.backgroundMode == BackgroundMode.BLUR) {
+            append(" / ぼかし")
+        }
+    }
 
     private fun formatInterval(seconds: Long): String =
         when {
