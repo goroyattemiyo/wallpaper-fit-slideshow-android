@@ -126,14 +126,21 @@ class WallpaperRenderer(
             val paint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
             canvas.drawBitmap(source, null, destination, paint)
 
+            val visibleCropHint = Rect(
+                geometry.visibleLeft,
+                geometry.visibleTop,
+                geometry.visibleRight,
+                geometry.visibleBottom,
+            )
+            WallpaperBlurRenderer.apply(
+                bitmap = output,
+                region = visibleCropHint,
+                radius = layout.wallpaperBlurRadius,
+            )
+
             return RenderedWallpaper(
                 bitmap = output,
-                visibleCropHint = Rect(
-                    geometry.visibleLeft,
-                    geometry.visibleTop,
-                    geometry.visibleRight,
-                    geometry.visibleBottom,
-                ),
+                visibleCropHint = visibleCropHint,
             )
         } catch (throwable: Throwable) {
             if (!output.isRecycled) {

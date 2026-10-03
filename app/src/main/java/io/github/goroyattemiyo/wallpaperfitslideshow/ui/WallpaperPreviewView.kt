@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.Rect
 import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.MotionEvent
@@ -16,6 +17,7 @@ import io.github.goroyattemiyo.wallpaperfitslideshow.core.layout.LayoutRequest
 import io.github.goroyattemiyo.wallpaperfitslideshow.model.BackgroundMode
 import io.github.goroyattemiyo.wallpaperfitslideshow.model.WallpaperLayoutState
 import io.github.goroyattemiyo.wallpaperfitslideshow.wallpaper.BackgroundRenderer
+import io.github.goroyattemiyo.wallpaperfitslideshow.wallpaper.WallpaperBlurRenderer
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -57,6 +59,7 @@ class WallpaperPreviewView @JvmOverloads constructor(
     )
 
     private var bitmap: Bitmap? = null
+    private var effectBitmap: Bitmap? = null
     private var logicalSourceWidth = 0
     private var logicalSourceHeight = 0
     private var targetWidth = 9
@@ -106,6 +109,10 @@ class WallpaperPreviewView @JvmOverloads constructor(
                     WallpaperLayoutState.MAX_BLUR_RADIUS,
                 ),
                 backgroundImageAlpha = value.backgroundImageAlpha.coerceIn(0, 255),
+                wallpaperBlurRadius = value.wallpaperBlurRadius.coerceIn(
+                    0,
+                    WallpaperLayoutState.MAX_WALLPAPER_BLUR_RADIUS,
+                ),
             ),
             notify = false,
         )
@@ -168,6 +175,17 @@ class WallpaperPreviewView @JvmOverloads constructor(
         )
     }
 
+    fun setWallpaperBlurRadius(radius: Int) {
+        updateLayoutState(
+            layoutState.copy(
+                wallpaperBlurRadius = radius.coerceIn(
+                    0,
+                    WallpaperLayoutState.MAX_WALLPAPER_BLUR_RADIUS,
+                ),
+            ),
+        )
+    }
+
     fun resetCurrentMode() {
         updateLayoutState(
             layoutState.copy(
@@ -183,6 +201,10 @@ class WallpaperPreviewView @JvmOverloads constructor(
             if (!it.isRecycled) it.recycle()
         }
         bitmap = null
+        effectBitmap?.let {
+            if (!it.isRecycled) it.recycle()
+        }
+        effectBitmap = null
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -223,6 +245,27 @@ class WallpaperPreviewView @JvmOverloads constructor(
             return
         }
 
+        if (layoutState.wallpaperBlurRadius > 0) {
+            val work = obtainEffectBitmap()
+            val workCanvas = Canvas(work)
+            work.eraseColor(Color.TRANSPARENT)
+            drawComposition(workCanvas, source)
+            WallpaperBlurRenderer.apply(
+                bitmap = work,
+                region = Rect(0, 0, work.width, work.height),
+                radius = layoutState.wallpaperBlurRadius,
+            )
+            canvas.drawBitmap(work, 0f, 0f, paint)
+            return
+        }
+
+        drawComposition(canvas, source)
+    }
+
+    private fun drawComposition(
+        canvas: Canvas,
+        source: Bitmap,
+    ) {
         BackgroundRenderer.draw(
             canvas = canvas,
             source = source,
@@ -254,6 +297,31 @@ class WallpaperPreviewView @JvmOverloads constructor(
             ),
             paint,
         )
+    }
+
+    private fun obtainEffectBitmap(): Bitmap {
+        val existing = effectBitmap
+        if (existing != null &&
+            !existing.isRecycled &&
+            existing.width == width &&
+            existing.height == height
+        ) {
+            return existing
+        }
+
+        existing?.let {
+            if (!it.isRecycled) {
+                it.recycle()
+            }
+        }
+
+        return Bitmap.createBitmap(
+            width.coerceAtLeast(1),
+            height.coerceAtLeast(1),
+            Bitmap.Config.ARGB_8888,
+        ).also {
+            effectBitmap = it
+        }
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
