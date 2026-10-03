@@ -20,12 +20,38 @@
         android:layout_marginTop="8dp"
         android:text="@string/development_status" />
 
-    <Button
-        android:id="@+id/add_images_button"
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
-        android:text="画像を追加" />
+        android:text="追加方法" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/add_images_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="画像" />
+
+        <Button
+            android:id="@+id/add_folder_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="フォルダ" />
+
+        <Button
+            android:id="@+id/add_zip_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="ZIP" />
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"

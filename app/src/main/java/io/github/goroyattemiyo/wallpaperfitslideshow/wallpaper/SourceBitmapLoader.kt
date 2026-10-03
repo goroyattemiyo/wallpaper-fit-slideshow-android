@@ -8,6 +8,8 @@ import android.graphics.Matrix
 import android.net.Uri
 import androidx.exifinterface.media.ExifInterface
 import io.github.goroyattemiyo.wallpaperfitslideshow.core.render.DecodeSampleCalculator
+import java.io.File
+import java.io.FileInputStream
 import java.io.IOException
 
 data class SourceImageInfo(
@@ -157,8 +159,16 @@ class SourceBitmapLoader(
     }
 
     private fun openInputStream(uri: Uri) =
-        contentResolver.openInputStream(uri)
-            ?: throw SourceUnavailableException("画像を開けませんでした。")
+        if (uri.scheme == "file") {
+            runCatching {
+                FileInputStream(File(requireNotNull(uri.path)))
+            }.getOrElse {
+                throw SourceUnavailableException("画像を開けませんでした。", it)
+            }
+        } else {
+            contentResolver.openInputStream(uri)
+                ?: throw SourceUnavailableException("画像を開けませんでした。")
+        }
 
     private fun applyExifOrientation(
         bitmap: Bitmap,

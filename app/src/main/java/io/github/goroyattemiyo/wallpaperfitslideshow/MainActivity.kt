@@ -14,7 +14,10 @@ import android.widget.ListView
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
+import io.github.goroyattemiyo.wallpaperfitslideshow.data.FolderImageScanner
+import io.github.goroyattemiyo.wallpaperfitslideshow.data.ImportedImageSource
 import io.github.goroyattemiyo.wallpaperfitslideshow.data.SettingsStore
+import io.github.goroyattemiyo.wallpaperfitslideshow.data.ZipImageImporter
 import io.github.goroyattemiyo.wallpaperfitslideshow.ui.WallpaperItemAdapter
 import io.github.goroyattemiyo.wallpaperfitslideshow.model.AppSettings
 import io.github.goroyattemiyo.wallpaperfitslideshow.model.OrderMode
@@ -101,6 +104,12 @@ class MainActivity : Activity() {
     private fun configureButtons() {
         findViewById<Button>(R.id.add_images_button).setOnClickListener {
             openImagePicker()
+        }
+        findViewById<Button>(R.id.add_folder_button).setOnClickListener {
+            openFolderPicker()
+        }
+        findViewById<Button>(R.id.add_zip_button).setOnClickListener {
+            openZipPicker()
         }
         findViewById<Button>(R.id.edit_image_button).setOnClickListener {
             editSelected()
@@ -197,6 +206,35 @@ class MainActivity : Activity() {
         startActivityForResult(intent, REQUEST_OPEN_IMAGES)
     }
 
+    @Suppress("DEPRECATION")
+    private fun openFolderPicker() {
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
+            addFlags(Intent.FLAG_GRANT_PREFIX_URI_PERMISSION)
+        }
+        startActivityForResult(intent, REQUEST_OPEN_FOLDER)
+    }
+
+    @Suppress("DEPRECATION")
+    private fun openZipPicker() {
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "application/zip"
+            putExtra(
+                Intent.EXTRA_MIME_TYPES,
+                arrayOf(
+                    "application/zip",
+                    "application/x-zip-compressed",
+                    "application/octet-stream",
+                ),
+            )
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
+        }
+        startActivityForResult(intent, REQUEST_OPEN_ZIP)
+    }
+
     @Deprecated("Uses platform result API intentionally to avoid an additional Activity dependency.")
     override fun onActivityResult(
         requestCode: Int,
@@ -204,10 +242,18 @@ class MainActivity : Activity() {
         data: Intent?,
     ) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode != REQUEST_OPEN_IMAGES || resultCode != RESULT_OK || data == null) {
+        if (resultCode != RESULT_OK || data == null) {
             return
         }
 
+        when (requestCode) {
+            REQUEST_OPEN_IMAGES -> handlePickedImages(data)
+            REQUEST_OPEN_FOLDER -> handlePickedFolder(data)
+            REQUEST_OPEN_ZIP -> handlePickedZip(data)
+        }
+    }
+
+    private fun handlePickedImages(data: Intent) {
         val uris = extractUris(data)
         if (uris.isEmpty()) {
             return
@@ -255,6 +301,105 @@ class MainActivity : Activity() {
                 "${rejected}件は継続アクセス権を取得できなかったため追加しませんでした。",
                 Toast.LENGTH_LONG,
             ).show()
+        }
+        refreshUi()
+    }
+
+    private fun handlePickedFolder(data: Intent) {
+        val treeUri = data.data ?: return
+        try {
+            contentResolver.takePersistableUriPermission(
+                treeUri,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION,
+            )
+        } catch (_: SecurityException) {
+            toast("フォルダの継続アクセス権を取得できませんでした。")
+            return
+        }
+
+        statusText.text = "フォルダを読み込んでいます…"
+        executor.execute {
+            val result = runCatching {
+                FolderImageScanner(applicationContext).scan(treeUri)
+            }
+            runOnUiThread {
+                if (isDestroyed) {
+                    return@runOnUiThread
+                }
+                result.onSuccess { sources ->
+                    addImportedSources(sources)
+                    if (sources.size >= FolderImageScanner.MAX_IMAGES) {
+                        toast("フォルダから最大${FolderImageScanner.MAX_IMAGES}枚まで追加しました。")
+                    }
+                }.onFailure {
+                    toast(it.message ?: "フォルダを読み込めませんでした。")
+                    refreshUi()
+                }
+            }
+        }
+    }
+
+    private fun handlePickedZip(data: Intent) {
+        val zipUri = data.data ?: return
+        runCatching {
+            contentResolver.takePersistableUriPermission(
+                zipUri,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION,
+            )
+        }
+
+        statusText.text = "ZIPから画像を取り込んでいます…"
+        executor.execute {
+            val result = runCatching {
+                ZipImageImporter(applicationContext).import(zipUri)
+            }
+            runCatching {
+                contentResolver.releasePersistableUriPermission(
+                    zipUri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION,
+                )
+            }
+
+            runOnUiThread {
+                if (isDestroyed) {
+                    return@runOnUiThread
+                }
+                result.onSuccess { sources ->
+                    addImportedSources(sources)
+                    if (sources.isEmpty()) {
+                        toast("ZIP内に対応画像がありませんでした。")
+                    }
+                }.onFailure {
+                    toast(it.message ?: "ZIPを取り込めませんでした。")
+                    refreshUi()
+                }
+            }
+        }
+    }
+
+    private fun addImportedSources(sources: List<ImportedImageSource>) {
+        if (sources.isEmpty()) {
+            refreshUi()
+            return
+        }
+
+        val existingUris = settingsStore.load().items
+            .mapTo(mutableSetOf()) { it.uri }
+        val additions = sources.filter { it.uri.toString() !in existingUris }
+
+        if (additions.isNotEmpty()) {
+            settings = settingsStore.update { current ->
+                val startOrder = current.items.size
+                val newItems = additions.mapIndexed { index, source ->
+                    WallpaperItem(
+                        id = UUID.randomUUID().toString(),
+                        uri = source.uri.toString(),
+                        displayName = source.displayName,
+                        order = startOrder + index,
+                    )
+                }
+                current.copy(items = current.items + newItems)
+            }
         }
         refreshUi()
     }
@@ -389,11 +534,16 @@ class MainActivity : Activity() {
         }
 
         val item = settings.items.firstOrNull { it.id == id } ?: return
-        runCatching {
-            contentResolver.releasePersistableUriPermission(
-                Uri.parse(item.uri),
-                Intent.FLAG_GRANT_READ_URI_PERMISSION,
-            )
+        val itemUri = Uri.parse(item.uri)
+        if (itemUri.scheme == "file") {
+            cleanupManagedFile(itemUri)
+        } else {
+            runCatching {
+                contentResolver.releasePersistableUriPermission(
+                    itemUri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION,
+                )
+            }
         }
 
         settings = settingsStore.update { current ->
@@ -412,6 +562,25 @@ class MainActivity : Activity() {
         }
         selectedItemId = null
         refreshUi()
+    }
+
+    private fun cleanupManagedFile(uri: Uri) {
+        val path = uri.path ?: return
+        val file = java.io.File(path)
+        val managedRoot = java.io.File(filesDir, "imported-zips")
+
+        runCatching {
+            val canonical = file.canonicalFile
+            val rootCanonical = managedRoot.canonicalFile
+            if (canonical.path.startsWith(rootCanonical.path + java.io.File.separator)) {
+                canonical.delete()
+                canonical.parentFile?.let { parent ->
+                    if (parent.isDirectory && parent.list()?.isEmpty() == true) {
+                        parent.delete()
+                    }
+                }
+            }
+        }
     }
 
     private fun startSlideshow() {
@@ -540,6 +709,8 @@ class MainActivity : Activity() {
 
     companion object {
         private const val REQUEST_OPEN_IMAGES = 1001
+        private const val REQUEST_OPEN_FOLDER = 1002
+        private const val REQUEST_OPEN_ZIP = 1003
 
         private val INTERVALS = listOf(
             IntervalOption(15, "15分"),
