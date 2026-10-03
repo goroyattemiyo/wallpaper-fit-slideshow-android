@@ -46,7 +46,7 @@ data class WallpaperItem(
 data class AppSettings(
     val schemaVersion: Int = CURRENT_SCHEMA_VERSION,
     val slideshowEnabled: Boolean = false,
-    val intervalMinutes: Long = DEFAULT_INTERVAL_MINUTES,
+    val intervalSeconds: Long = DEFAULT_INTERVAL_SECONDS,
     val orderMode: OrderMode = OrderMode.SEQUENTIAL,
     val target: WallpaperTarget = WallpaperTarget.BOTH,
     val currentItemId: String? = null,
@@ -55,8 +55,9 @@ data class AppSettings(
     val items: List<WallpaperItem> = emptyList(),
 ) {
     companion object {
-        const val CURRENT_SCHEMA_VERSION = 2
-        const val DEFAULT_INTERVAL_MINUTES = 60L
-        const val MIN_INTERVAL_MINUTES = 15L
+        const val CURRENT_SCHEMA_VERSION = 3
+        const val DEFAULT_INTERVAL_SECONDS = 3600L
+        const val MIN_INTERVAL_SECONDS = 10L
+        const val WORK_MANAGER_MIN_INTERVAL_SECONDS = 15L * 60L
     }
 }

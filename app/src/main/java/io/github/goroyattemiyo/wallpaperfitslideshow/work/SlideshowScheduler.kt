@@ -10,14 +10,26 @@ import java.util.concurrent.TimeUnit
 class SlideshowScheduler(
     context: Context,
 ) {
-    private val workManager = WorkManager.getInstance(context.applicationContext)
+    private val appContext = context.applicationContext
+    private val workManager = WorkManager.getInstance(appContext)
 
-    fun schedule(intervalMinutes: Long) {
-        val safeInterval = intervalMinutes.coerceAtLeast(AppSettings.MIN_INTERVAL_MINUTES)
+    fun schedule(intervalSeconds: Long) {
+        val safeInterval = intervalSeconds.coerceAtLeast(
+            AppSettings.MIN_INTERVAL_SECONDS,
+        )
+
+        if (safeInterval < AppSettings.WORK_MANAGER_MIN_INTERVAL_SECONDS) {
+            workManager.cancelUniqueWork(UNIQUE_WORK_NAME)
+            FastSlideshowService.start(appContext)
+            return
+        }
+
+        FastSlideshowService.stop(appContext)
+
         val request = PeriodicWorkRequest.Builder(
             WallpaperWorker::class.java,
             safeInterval,
-            TimeUnit.MINUTES,
+            TimeUnit.SECONDS,
         ).build()
 
         workManager.enqueueUniquePeriodicWork(
@@ -29,6 +41,7 @@ class SlideshowScheduler(
 
     fun cancel() {
         workManager.cancelUniqueWork(UNIQUE_WORK_NAME)
+        FastSlideshowService.stop(appContext)
     }
 
     companion object {

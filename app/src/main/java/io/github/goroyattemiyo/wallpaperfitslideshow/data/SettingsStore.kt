@@ -84,8 +84,8 @@ class SettingsStore(context: Context) {
             .put("schemaVersion", AppSettings.CURRENT_SCHEMA_VERSION)
             .put("slideshowEnabled", settings.slideshowEnabled)
             .put(
-                "intervalMinutes",
-                settings.intervalMinutes.coerceAtLeast(AppSettings.MIN_INTERVAL_MINUTES),
+                "intervalSeconds",
+                settings.intervalSeconds.coerceAtLeast(AppSettings.MIN_INTERVAL_SECONDS),
             )
             .put("orderMode", settings.orderMode.name)
             .put("target", settings.target.name)
@@ -169,9 +169,16 @@ class SettingsStore(context: Context) {
         return AppSettings(
             schemaVersion = schemaVersion,
             slideshowEnabled = root.optBoolean("slideshowEnabled", false),
-            intervalMinutes = root
-                .optLong("intervalMinutes", AppSettings.DEFAULT_INTERVAL_MINUTES)
-                .coerceAtLeast(AppSettings.MIN_INTERVAL_MINUTES),
+            intervalSeconds = (
+                if (root.has("intervalSeconds")) {
+                    root.optLong(
+                        "intervalSeconds",
+                        AppSettings.DEFAULT_INTERVAL_SECONDS,
+                    )
+                } else {
+                    root.optLong("intervalMinutes", 60L) * 60L
+                }
+            ).coerceAtLeast(AppSettings.MIN_INTERVAL_SECONDS),
             orderMode = enumOrDefault(
                 root.optString("orderMode"),
                 OrderMode.SEQUENTIAL,
