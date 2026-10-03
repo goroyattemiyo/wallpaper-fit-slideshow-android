@@ -95,7 +95,7 @@ V1の仕様・アーキテクチャを確定してからAndroid実装へ入る�
 - [x] Pure Kotlin core smoke check: PASS (layout / selector / decode / geometry)
 - [x] WallpaperManager / WorkManager / SAF APIs reviewed against Android official docs
 - [x] Previous baseline Android Gradle compile: PASS (2026-10-03, Windows local)
-- [ ] Current branch after target-selection/crop/blur/folder/ZIP changes: recompile pending
+- [x] Current branch after target-selection/crop/blur/folder/ZIP changes: local verify PASS (2026-10-03)
 - [x] unit test: PASS (`testDebugUnitTest`, 2026-10-03)
 - [ ] integration test
 - [ ] CI
@@ -166,3 +166,22 @@ Unverified:
 - Redmi runtime behavior
 - actual HyperOS preview-to-wallpaper crop difference
 - EXIF edge cases on real files
+
+
+## Latest Verification Update - 2026-10-03
+
+Latest local verification after target-selection/crop/blur/folder/ZIP changes:
+
+- `testDebugUnitTest`: PASS
+- `lintDebug`: PASS
+- `assembleDebug`: PASS
+- Debug APK install to connected Redmi: PASS
+
+Still unverified:
+
+- slideshow target checkbox behavior on device
+- Crop shrink / zoom / vertical positioning on device
+- blurred background / transparency on device
+- folder import on device
+- ZIP import on device
+- preview vs actual wallpaper alignment on HyperOS
