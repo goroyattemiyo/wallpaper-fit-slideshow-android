@@ -27,6 +27,7 @@ import io.github.goroyattemiyo.wallpaperfitslideshow.model.WallpaperTarget
 import io.github.goroyattemiyo.wallpaperfitslideshow.wallpaper.WallpaperOperationResult
 import io.github.goroyattemiyo.wallpaperfitslideshow.wallpaper.WallpaperOperationService
 import io.github.goroyattemiyo.wallpaperfitslideshow.work.SlideshowScheduler
+import io.github.goroyattemiyo.wallpaperfitslideshow.widget.WallpaperControlWidgetProvider
 import java.util.UUID
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -814,6 +815,7 @@ class MainActivity : Activity() {
                 append(it)
             }
         }
+        WallpaperControlWidgetProvider.updateAll(applicationContext)
     }
 
     private fun toast(message: String) {

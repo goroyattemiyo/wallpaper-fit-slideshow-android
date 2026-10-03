@@ -24,6 +24,7 @@ import io.github.goroyattemiyo.wallpaperfitslideshow.wallpaper.SourceBitmapLoade
 import io.github.goroyattemiyo.wallpaperfitslideshow.wallpaper.WallpaperOperationResult
 import io.github.goroyattemiyo.wallpaperfitslideshow.wallpaper.WallpaperOperationService
 import io.github.goroyattemiyo.wallpaperfitslideshow.wallpaper.WallpaperTargetSizeResolver
+import io.github.goroyattemiyo.wallpaperfitslideshow.widget.WallpaperControlWidgetProvider
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -223,6 +224,7 @@ class ImageEditorActivity : Activity() {
                 },
             )
         }
+        WallpaperControlWidgetProvider.updateAll(applicationContext)
         return id
     }
 

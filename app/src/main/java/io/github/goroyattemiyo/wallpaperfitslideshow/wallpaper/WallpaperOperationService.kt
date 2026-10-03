@@ -5,14 +5,16 @@ import io.github.goroyattemiyo.wallpaperfitslideshow.core.SlideshowSelector
 import io.github.goroyattemiyo.wallpaperfitslideshow.data.SettingsStore
 import io.github.goroyattemiyo.wallpaperfitslideshow.model.WallpaperItem
 import io.github.goroyattemiyo.wallpaperfitslideshow.model.WallpaperTarget
+import io.github.goroyattemiyo.wallpaperfitslideshow.widget.WallpaperControlWidgetProvider
 
 class WallpaperOperationService(
     context: Context,
 ) {
-    private val settingsStore = SettingsStore(context.applicationContext)
-    private val renderer = WallpaperRenderer(context.applicationContext)
-    private val applier = WallpaperApplier(context.applicationContext)
-    private val targetSizeResolver = WallpaperTargetSizeResolver(context.applicationContext)
+    private val appContext = context.applicationContext
+    private val settingsStore = SettingsStore(appContext)
+    private val renderer = WallpaperRenderer(appContext)
+    private val applier = WallpaperApplier(appContext)
+    private val targetSizeResolver = WallpaperTargetSizeResolver(appContext)
 
     fun applyNext(requireSlideshowEnabled: Boolean): WallpaperOperationResult =
         WallpaperOperationGate.tryRun {
@@ -159,6 +161,7 @@ class WallpaperOperationService(
                     WallpaperTarget.BOTH -> current
                 }
             }
+            WallpaperControlWidgetProvider.updateAll(appContext)
             return TargetApplyResult.Applied(candidate.id)
         }
 
@@ -220,6 +223,7 @@ class WallpaperOperationService(
                 WallpaperTarget.BOTH -> current
             }
         }
+        WallpaperControlWidgetProvider.updateAll(appContext)
         return WallpaperOperationResult.Success(setOf(target))
     }
 
