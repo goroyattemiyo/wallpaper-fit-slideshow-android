@@ -111,7 +111,7 @@
                     style="@style/AppTextHelper"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="行タップで詳細 / Home・Lockを個別選択" />
+                    android:text="行タップで詳細 / 使用する画像を選択" />
             </LinearLayout>
 
             <Button
@@ -121,7 +121,7 @@
                 android:layout_height="40dp"
                 android:minHeight="0dp"
                 android:minWidth="0dp"
-                android:text="全てON" />
+                android:text="全て使用" />
 
             <Button
                 android:id="@+id/clear_all_button"
@@ -131,7 +131,7 @@
                 android:layout_marginStart="4dp"
                 android:minHeight="0dp"
                 android:minWidth="0dp"
-                android:text="全てOFF" />
+                android:text="全て解除" />
         </LinearLayout>
 
         <ListView
