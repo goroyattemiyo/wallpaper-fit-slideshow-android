@@ -621,3 +621,5 @@ Static review:
 - brace balance for touched Kotlin files: PASS
 - Unit/Lint/assemble/install after Home-only change: NOT YET RUN
 - CI: NOT RUN
+
+- Direct apply guard: Home-only; WallpaperOperationService.applyItem rejects non-HOME targets in V1.
