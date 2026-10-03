@@ -7,10 +7,12 @@ import android.os.Bundle
 import android.text.InputType
 import android.widget.Button
 import android.widget.EditText
+import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
 import io.github.goroyattemiyo.wallpaperfitslideshow.core.layout.LayoutMode
 import io.github.goroyattemiyo.wallpaperfitslideshow.data.SettingsStore
+import io.github.goroyattemiyo.wallpaperfitslideshow.model.BackgroundMode
 import io.github.goroyattemiyo.wallpaperfitslideshow.ui.WallpaperPreviewView
 import io.github.goroyattemiyo.wallpaperfitslideshow.wallpaper.SourceBitmapLoader
 import io.github.goroyattemiyo.wallpaperfitslideshow.wallpaper.WallpaperOperationResult
@@ -24,6 +26,16 @@ class ImageEditorActivity : Activity() {
     private lateinit var preview: WallpaperPreviewView
     private lateinit var titleText: TextView
     private lateinit var operationService: WallpaperOperationService
+    private lateinit var zoomSeekBar: SeekBar
+    private lateinit var verticalSeekBar: SeekBar
+    private lateinit var blurSeekBar: SeekBar
+    private lateinit var transparencySeekBar: SeekBar
+    private lateinit var zoomLabel: TextView
+    private lateinit var verticalLabel: TextView
+    private lateinit var blurLabel: TextView
+    private lateinit var transparencyLabel: TextView
+    private var bindingEditorControls = false
+
     private val executor: ExecutorService = Executors.newSingleThreadExecutor()
 
     private var itemId: String? = null
@@ -36,6 +48,14 @@ class ImageEditorActivity : Activity() {
         operationService = WallpaperOperationService(applicationContext)
         preview = findViewById(R.id.wallpaper_preview)
         titleText = findViewById(R.id.editor_title)
+        zoomSeekBar = findViewById(R.id.zoom_seek)
+        verticalSeekBar = findViewById(R.id.vertical_seek)
+        blurSeekBar = findViewById(R.id.blur_seek)
+        transparencySeekBar = findViewById(R.id.transparency_seek)
+        zoomLabel = findViewById(R.id.zoom_label)
+        verticalLabel = findViewById(R.id.vertical_label)
+        blurLabel = findViewById(R.id.blur_label)
+        transparencyLabel = findViewById(R.id.transparency_label)
 
         itemId = intent.getStringExtra(EXTRA_ITEM_ID)
         val item = settingsStore.load().items.firstOrNull { it.id == itemId }
@@ -47,6 +67,9 @@ class ImageEditorActivity : Activity() {
 
         titleText.text = item.displayName
         preview.setLayoutState(item.layout)
+        configureAdjustmentControls()
+        syncAdjustmentControls(preview.layoutState)
+
         val geometry = WallpaperTargetSizeResolver(applicationContext).resolve()
         preview.setTargetSize(
             geometry.visibleWidth,
@@ -60,6 +83,9 @@ class ImageEditorActivity : Activity() {
             preview.setMode(LayoutMode.CROP)
         }
         findViewById<Button>(R.id.background_button).setOnClickListener {
+            showBackgroundStyleDialog()
+        }
+        findViewById<Button>(R.id.background_color_button).setOnClickListener {
             showBackgroundColorDialog()
         }
         findViewById<Button>(R.id.reset_button).setOnClickListener {
@@ -112,6 +138,101 @@ class ImageEditorActivity : Activity() {
         executor.shutdownNow()
         preview.release()
         super.onDestroy()
+    }
+
+    private fun configureAdjustmentControls() {
+        zoomSeekBar.max = ZOOM_PROGRESS_MAX
+        verticalSeekBar.max = 200
+        blurSeekBar.max = io.github.goroyattemiyo.wallpaperfitslideshow.model.WallpaperLayoutState.MAX_BLUR_RADIUS
+        transparencySeekBar.max = 100
+
+        preview.onLayoutStateChanged = ::syncAdjustmentControls
+
+        zoomSeekBar.setOnSeekBarChangeListener(
+            SimpleSeekListener { progress ->
+                if (!bindingEditorControls) {
+                    preview.setUserScale(
+                        ZOOM_MIN + progress.toDouble() / 100.0,
+                    )
+                }
+            },
+        )
+        verticalSeekBar.setOnSeekBarChangeListener(
+            SimpleSeekListener { progress ->
+                if (!bindingEditorControls) {
+                    preview.setVerticalOffset(
+                        (progress - 100).toDouble() / 100.0,
+                    )
+                }
+            },
+        )
+        blurSeekBar.setOnSeekBarChangeListener(
+            SimpleSeekListener { progress ->
+                if (!bindingEditorControls) {
+                    preview.setBlurRadius(progress)
+                }
+            },
+        )
+        transparencySeekBar.setOnSeekBarChangeListener(
+            SimpleSeekListener { progress ->
+                if (!bindingEditorControls) {
+                    val alpha = (
+                        255.0 * (100 - progress).toDouble() / 100.0
+                    ).toInt()
+                    preview.setBackgroundImageAlpha(alpha)
+                }
+            },
+        )
+    }
+
+    private fun syncAdjustmentControls(
+        state: io.github.goroyattemiyo.wallpaperfitslideshow.model.WallpaperLayoutState,
+    ) {
+        bindingEditorControls = true
+        try {
+            zoomSeekBar.progress = (
+                (state.userScale - ZOOM_MIN) * 100.0
+            ).toInt().coerceIn(0, ZOOM_PROGRESS_MAX)
+            verticalSeekBar.progress = (
+                state.offsetYNormalized * 100.0 + 100.0
+            ).toInt().coerceIn(0, 200)
+            blurSeekBar.progress = state.blurRadius
+            transparencySeekBar.progress = (
+                100.0 - state.backgroundImageAlpha.toDouble() * 100.0 / 255.0
+            ).toInt().coerceIn(0, 100)
+
+            zoomLabel.text = "倍率: ${(state.userScale * 100).toInt()}%"
+            verticalLabel.text = "上下位置: ${verticalPositionLabel(state.offsetYNormalized)}"
+            blurLabel.text = "ぼかし: ${state.blurRadius}"
+            transparencyLabel.text =
+                "背景画像の透明度: ${transparencySeekBar.progress}%"
+        } finally {
+            bindingEditorControls = false
+        }
+    }
+
+    private fun verticalPositionLabel(value: Double): String =
+        when {
+            value <= -0.95 -> "上端"
+            value >= 0.95 -> "下端"
+            kotlin.math.abs(value) < 0.05 -> "中央"
+            value < 0.0 -> "上 ${(-value * 100).toInt()}%"
+            else -> "下 ${(value * 100).toInt()}%"
+        }
+
+    private fun showBackgroundStyleDialog() {
+        val labels = arrayOf(
+            "単色",
+            "同じ画像をぼかして背景にする",
+        )
+        AlertDialog.Builder(this)
+            .setTitle("背景スタイル")
+            .setItems(labels) { _, which ->
+                preview.setBackgroundMode(
+                    if (which == 1) BackgroundMode.BLUR else BackgroundMode.SOLID,
+                )
+            }
+            .show()
     }
 
     private fun saveLayout(): String? {
@@ -218,8 +339,27 @@ class ImageEditorActivity : Activity() {
             .show()
     }
 
+    private class SimpleSeekListener(
+        private val onProgress: (Int) -> Unit,
+    ) : SeekBar.OnSeekBarChangeListener {
+        override fun onProgressChanged(
+            seekBar: SeekBar?,
+            progress: Int,
+            fromUser: Boolean,
+        ) {
+            if (fromUser) {
+                onProgress(progress)
+            }
+        }
+
+        override fun onStartTrackingTouch(seekBar: SeekBar?) = Unit
+        override fun onStopTrackingTouch(seekBar: SeekBar?) = Unit
+    }
+
     companion object {
         const val EXTRA_ITEM_ID = "item_id"
         private const val PREVIEW_MAX_PIXELS = 2_000_000L
+        private const val ZOOM_MIN = 0.2
+        private const val ZOOM_PROGRESS_MAX = 480
     }
 }

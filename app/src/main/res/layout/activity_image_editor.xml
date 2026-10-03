@@ -30,7 +30,30 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="Cropではピンチで拡大、ドラッグで位置調整できます。" />
+            android:text="ドラッグで位置調整。Cropではピンチで縮小・拡大できます。" />
+
+        <TextView
+            android:id="@+id/zoom_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="倍率: 100%" />
+
+        <SeekBar
+            android:id="@+id/zoom_seek"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:id="@+id/vertical_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="上下位置: 中央" />
+
+        <SeekBar
+            android:id="@+id/vertical_seek"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -63,6 +86,13 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:text="背景スタイル" />
+
+            <Button
+                android:id="@+id/background_color_button"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:text="背景色" />
 
             <Button
@@ -72,6 +102,29 @@
                 android:layout_weight="1"
                 android:text="位置をリセット" />
         </LinearLayout>
+
+        <TextView
+            android:id="@+id/blur_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="ぼかし: 12" />
+
+        <SeekBar
+            android:id="@+id/blur_seek"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:id="@+id/transparency_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="背景画像の透明度: 0%" />
+
+        <SeekBar
+            android:id="@+id/transparency_seek"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
 
         <LinearLayout
             android:layout_width="match_parent"
