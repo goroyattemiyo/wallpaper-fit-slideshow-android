@@ -25,8 +25,10 @@ class WallpaperOperationService(
         itemId: String,
         target: WallpaperTarget,
     ): WallpaperOperationResult {
-        require(target != WallpaperTarget.BOTH) {
-            "Direct item target must be HOME or LOCK."
+        if (target != WallpaperTarget.HOME) {
+            return WallpaperOperationResult.Failure(
+                "V1ではホーム画面壁紙のみ対応しています。",
+            )
         }
 
         return WallpaperOperationGate.tryRun {
