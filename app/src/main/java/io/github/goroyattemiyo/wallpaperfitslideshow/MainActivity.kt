@@ -732,8 +732,7 @@ class MainActivity : Activity() {
                 .filterNot { it.id == id }
                 .mapIndexed { index, value -> value.copy(order = index) }
 
-            val canRun = remaining.count { it.homeEnabled } >= 2 ||
-                remaining.count { it.lockEnabled } >= 2
+            val canRun = remaining.count { it.homeEnabled } >= 2
             current.copy(
                 items = remaining,
                 slideshowEnabled = current.slideshowEnabled && canRun,
