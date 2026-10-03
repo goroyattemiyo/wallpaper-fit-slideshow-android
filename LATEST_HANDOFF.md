@@ -430,3 +430,38 @@ Static review completed after schema 6 + widget implementation:
 - unit/lint/assemble/install: NOT YET RUN
 - Redmi / HyperOS widget behavior: NOT YET VERIFIED
 - CI: NOT RUN
+
+
+## Experimental Lock-Screen Pinch PoC - 2026-10-03
+
+Branch: `experiment/lock-live-pinch-poc`
+
+Goal:
+
+- determine whether actual Redmi / HyperOS lock screen forwards pinch gestures to `WallpaperService.Engine.onTouchEvent`
+
+Implementation:
+
+- added `LockPinchWallpaperService`
+- service requires `android.permission.BIND_WALLPAPER`
+- service publishes `android.service.wallpaper.WallpaperService` + XML metadata
+- engine calls `setTouchEventsEnabled(true)`
+- pinch handled with `ScaleGestureDetector`
+- current Lock item (or first Lock-enabled fallback) is rendered
+- zoom changes update the active item's `lockLayout` at gesture end
+- API 34+ wallpaper flags are checked so non-preview touch handling is intended for Lock
+- bottom debug line shows scale percent and received pinch event count
+- MainActivity has an experimental launcher button
+- PoC launch is blocked while slideshow is enabled to avoid static-wallpaper overwrite
+- system `ACTION_CHANGE_LIVE_WALLPAPER` is used to open the specific PoC service
+
+Important:
+
+- preview success does NOT prove actual lock-screen success
+- actual HyperOS lock-screen touch delivery is still unverified
+- Lock-only selection in the OEM wallpaper picker is also unverified
+- do not merge this experiment into V1 until real-device PASS
+- local Unit/Lint/assemble/install for this branch: NOT YET RUN
+- CI: NOT RUN
+
+See `docs/LOCK_PINCH_POC.md`.
