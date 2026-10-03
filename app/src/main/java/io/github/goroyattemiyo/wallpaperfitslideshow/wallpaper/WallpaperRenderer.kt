@@ -73,7 +73,7 @@ class WallpaperRenderer(
             renderToTarget(
                 source = loaded.bitmap,
                 layoutTransform = transform,
-                backgroundColor = item.layout.backgroundColor,
+                layout = item.layout,
                 geometry = geometry,
             )
         } catch (outOfMemory: OutOfMemoryError) {
@@ -88,7 +88,7 @@ class WallpaperRenderer(
     private fun renderToTarget(
         source: Bitmap,
         layoutTransform: LayoutTransform,
-        backgroundColor: Int,
+        layout: io.github.goroyattemiyo.wallpaperfitslideshow.model.WallpaperLayoutState,
         geometry: WallpaperGeometry,
     ): RenderedWallpaper {
         val output = Bitmap.createBitmap(
@@ -99,7 +99,18 @@ class WallpaperRenderer(
 
         try {
             val canvas = Canvas(output)
-            canvas.drawColor(backgroundColor)
+            val visibleRect = RectF(
+                geometry.visibleLeft.toFloat(),
+                geometry.visibleTop.toFloat(),
+                geometry.visibleRight.toFloat(),
+                geometry.visibleBottom.toFloat(),
+            )
+            BackgroundRenderer.draw(
+                canvas = canvas,
+                source = source,
+                destination = visibleRect,
+                layout = layout,
+            )
 
             val left = geometry.visibleLeft + layoutTransform.translationX
             val top = geometry.visibleTop + layoutTransform.translationY

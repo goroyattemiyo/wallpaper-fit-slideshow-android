@@ -13,8 +13,10 @@ import android.view.View
 import io.github.goroyattemiyo.wallpaperfitslideshow.core.layout.LayoutCalculator
 import io.github.goroyattemiyo.wallpaperfitslideshow.core.layout.LayoutMode
 import io.github.goroyattemiyo.wallpaperfitslideshow.core.layout.LayoutRequest
+import io.github.goroyattemiyo.wallpaperfitslideshow.model.BackgroundMode
 import io.github.goroyattemiyo.wallpaperfitslideshow.model.WallpaperLayoutState
-import kotlin.math.max
+import io.github.goroyattemiyo.wallpaperfitslideshow.wallpaper.BackgroundRenderer
+import kotlin.math.abs
 import kotlin.math.roundToInt
 
 class WallpaperPreviewView @JvmOverloads constructor(
@@ -32,12 +34,16 @@ class WallpaperPreviewView @JvmOverloads constructor(
         object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
             override fun onScale(detector: ScaleGestureDetector): Boolean {
                 if (layoutState.mode != LayoutMode.CROP) return false
-                layoutState = layoutState.copy(
-                    userScale = (
-                        layoutState.userScale * detector.scaleFactor.toDouble()
-                    ).coerceIn(MIN_USER_SCALE, MAX_USER_SCALE),
+                updateLayoutState(
+                    layoutState.copy(
+                        userScale = (
+                            layoutState.userScale * detector.scaleFactor.toDouble()
+                        ).coerceIn(
+                            LayoutCalculator.MIN_CROP_USER_SCALE,
+                            LayoutCalculator.MAX_CROP_USER_SCALE,
+                        ),
+                    ),
                 )
-                invalidate()
                 return true
             }
         },
@@ -48,8 +54,11 @@ class WallpaperPreviewView @JvmOverloads constructor(
     private var logicalSourceHeight = 0
     private var targetWidth = 9
     private var targetHeight = 20
+
     private var lastX = 0f
     private var lastY = 0f
+
+    var onLayoutStateChanged: ((WallpaperLayoutState) -> Unit)? = null
 
     var layoutState: WallpaperLayoutState = WallpaperLayoutState()
         private set
@@ -77,31 +86,82 @@ class WallpaperPreviewView @JvmOverloads constructor(
     }
 
     fun setLayoutState(value: WallpaperLayoutState) {
-        layoutState = value.copy(
-            userScale = value.userScale.coerceIn(MIN_USER_SCALE, MAX_USER_SCALE),
-            offsetXNormalized = value.offsetXNormalized.coerceIn(-1.0, 1.0),
-            offsetYNormalized = value.offsetYNormalized.coerceIn(-1.0, 1.0),
+        updateLayoutState(
+            value.copy(
+                userScale = value.userScale.coerceIn(
+                    LayoutCalculator.MIN_CROP_USER_SCALE,
+                    LayoutCalculator.MAX_CROP_USER_SCALE,
+                ),
+                offsetXNormalized = value.offsetXNormalized.coerceIn(-1.0, 1.0),
+                offsetYNormalized = value.offsetYNormalized.coerceIn(-1.0, 1.0),
+                blurRadius = value.blurRadius.coerceIn(
+                    0,
+                    WallpaperLayoutState.MAX_BLUR_RADIUS,
+                ),
+                backgroundImageAlpha = value.backgroundImageAlpha.coerceIn(0, 255),
+            ),
+            notify = false,
         )
-        invalidate()
     }
 
     fun setMode(mode: LayoutMode) {
-        layoutState = layoutState.copy(mode = mode)
-        invalidate()
+        updateLayoutState(layoutState.copy(mode = mode))
+    }
+
+    fun setUserScale(scale: Double) {
+        updateLayoutState(
+            layoutState.copy(
+                userScale = scale.coerceIn(
+                    LayoutCalculator.MIN_CROP_USER_SCALE,
+                    LayoutCalculator.MAX_CROP_USER_SCALE,
+                ),
+            ),
+        )
+    }
+
+    fun setVerticalOffset(normalized: Double) {
+        updateLayoutState(
+            layoutState.copy(
+                offsetYNormalized = normalized.coerceIn(-1.0, 1.0),
+            ),
+        )
     }
 
     fun setBackgroundColorValue(color: Int) {
-        layoutState = layoutState.copy(backgroundColor = color)
-        invalidate()
+        updateLayoutState(layoutState.copy(backgroundColor = color))
+    }
+
+    fun setBackgroundMode(mode: BackgroundMode) {
+        updateLayoutState(layoutState.copy(backgroundMode = mode))
+    }
+
+    fun setBlurRadius(radius: Int) {
+        updateLayoutState(
+            layoutState.copy(
+                blurRadius = radius.coerceIn(
+                    0,
+                    WallpaperLayoutState.MAX_BLUR_RADIUS,
+                ),
+            ),
+        )
+    }
+
+    fun setBackgroundImageAlpha(alpha: Int) {
+        updateLayoutState(
+            layoutState.copy(
+                backgroundImageAlpha = alpha.coerceIn(0, 255),
+            ),
+        )
     }
 
     fun resetCurrentMode() {
-        layoutState = layoutState.copy(
-            userScale = 1.0,
-            offsetXNormalized = 0.0,
-            offsetYNormalized = 0.0,
+        updateLayoutState(
+            layoutState.copy(
+                userScale = 1.0,
+                offsetXNormalized = 0.0,
+                offsetYNormalized = 0.0,
+            ),
         )
-        invalidate()
     }
 
     fun release() {
@@ -125,10 +185,10 @@ class WallpaperPreviewView @JvmOverloads constructor(
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        canvas.drawColor(layoutState.backgroundColor)
 
         val source = bitmap
         if (source == null || source.isRecycled) {
+            canvas.drawColor(layoutState.backgroundColor)
             canvas.drawText(
                 "画像を読み込み中…",
                 width / 2f,
@@ -137,6 +197,13 @@ class WallpaperPreviewView @JvmOverloads constructor(
             )
             return
         }
+
+        BackgroundRenderer.draw(
+            canvas = canvas,
+            source = source,
+            destination = RectF(0f, 0f, width.toFloat(), height.toFloat()),
+            layout = layoutState,
+        )
 
         val transform = LayoutCalculator.calculate(
             LayoutRequest(
@@ -166,10 +233,6 @@ class WallpaperPreviewView @JvmOverloads constructor(
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
         scaleDetector.onTouchEvent(event)
-
-        if (layoutState.mode != LayoutMode.CROP) {
-            return true
-        }
 
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
@@ -207,7 +270,10 @@ class WallpaperPreviewView @JvmOverloads constructor(
         return true
     }
 
-    private fun panBy(deltaX: Float, deltaY: Float) {
+    private fun panBy(
+        deltaX: Float,
+        deltaY: Float,
+    ) {
         val source = bitmap ?: return
         if (width <= 0 || height <= 0) return
 
@@ -217,36 +283,43 @@ class WallpaperPreviewView @JvmOverloads constructor(
                 sourceHeight = logicalSourceHeight.coerceAtLeast(1),
                 targetWidth = width,
                 targetHeight = height,
-                mode = LayoutMode.CROP,
+                mode = layoutState.mode,
                 userScale = layoutState.userScale,
                 offsetXNormalized = layoutState.offsetXNormalized,
                 offsetYNormalized = layoutState.offsetYNormalized,
             ),
         )
 
-        val maxPanX = max(0.0, (transform.renderedWidth - width) / 2.0)
-        val maxPanY = max(0.0, (transform.renderedHeight - height) / 2.0)
+        val travelX = abs(width - transform.renderedWidth) / 2.0
+        val travelY = abs(height - transform.renderedHeight) / 2.0
 
-        val nextX = if (maxPanX > 0.0) {
-            layoutState.offsetXNormalized + deltaX / maxPanX
+        val nextX = if (travelX > 0.0) {
+            layoutState.offsetXNormalized + deltaX / travelX
         } else {
             0.0
         }
-        val nextY = if (maxPanY > 0.0) {
-            layoutState.offsetYNormalized + deltaY / maxPanY
+        val nextY = if (travelY > 0.0) {
+            layoutState.offsetYNormalized + deltaY / travelY
         } else {
             0.0
         }
 
-        layoutState = layoutState.copy(
-            offsetXNormalized = nextX.coerceIn(-1.0, 1.0),
-            offsetYNormalized = nextY.coerceIn(-1.0, 1.0),
+        updateLayoutState(
+            layoutState.copy(
+                offsetXNormalized = nextX.coerceIn(-1.0, 1.0),
+                offsetYNormalized = nextY.coerceIn(-1.0, 1.0),
+            ),
         )
-        invalidate()
     }
 
-    companion object {
-        private const val MIN_USER_SCALE = 1.0
-        private const val MAX_USER_SCALE = 5.0
+    private fun updateLayoutState(
+        value: WallpaperLayoutState,
+        notify: Boolean = true,
+    ) {
+        layoutState = value
+        invalidate()
+        if (notify) {
+            onLayoutStateChanged?.invoke(value)
+        }
     }
 }

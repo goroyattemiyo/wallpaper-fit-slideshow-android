@@ -1,5 +1,6 @@
 package io.github.goroyattemiyo.wallpaperfitslideshow.core.layout
 
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
@@ -28,6 +29,9 @@ data class LayoutTransform(
 )
 
 object LayoutCalculator {
+    const val MIN_CROP_USER_SCALE = 0.2
+    const val MAX_CROP_USER_SCALE = 5.0
+
     fun calculate(request: LayoutRequest): LayoutTransform {
         validate(request)
 
@@ -36,56 +40,57 @@ object LayoutCalculator {
         val targetWidth = request.targetWidth.toDouble()
         val targetHeight = request.targetHeight.toDouble()
 
-        return when (request.mode) {
-            LayoutMode.CONTAIN -> {
-                val fitScale = min(targetWidth / sourceWidth, targetHeight / sourceHeight)
-                val scale = min(1.0, fitScale)
-                centeredTransform(
-                    sourceWidth = sourceWidth,
-                    sourceHeight = sourceHeight,
-                    targetWidth = targetWidth,
-                    targetHeight = targetHeight,
-                    scale = scale,
-                )
-            }
+        val scale = when (request.mode) {
+            LayoutMode.CONTAIN -> min(
+                1.0,
+                min(targetWidth / sourceWidth, targetHeight / sourceHeight),
+            )
 
             LayoutMode.CROP -> {
-                val fillScale = max(targetWidth / sourceWidth, targetHeight / sourceHeight)
-                val scale = fillScale * max(1.0, request.userScale)
-                val renderedWidth = sourceWidth * scale
-                val renderedHeight = sourceHeight * scale
-                val centeredX = (targetWidth - renderedWidth) / 2.0
-                val centeredY = (targetHeight - renderedHeight) / 2.0
-                val maxPanX = max(0.0, (renderedWidth - targetWidth) / 2.0)
-                val maxPanY = max(0.0, (renderedHeight - targetHeight) / 2.0)
-
-                LayoutTransform(
-                    scale = scale,
-                    translationX = centeredX +
-                        request.offsetXNormalized.coerceIn(-1.0, 1.0) * maxPanX,
-                    translationY = centeredY +
-                        request.offsetYNormalized.coerceIn(-1.0, 1.0) * maxPanY,
-                    renderedWidth = renderedWidth,
-                    renderedHeight = renderedHeight,
+                val fillScale = max(
+                    targetWidth / sourceWidth,
+                    targetHeight / sourceHeight,
+                )
+                fillScale * request.userScale.coerceIn(
+                    MIN_CROP_USER_SCALE,
+                    MAX_CROP_USER_SCALE,
                 )
             }
         }
+
+        return positionedTransform(
+            sourceWidth = sourceWidth,
+            sourceHeight = sourceHeight,
+            targetWidth = targetWidth,
+            targetHeight = targetHeight,
+            scale = scale,
+            offsetXNormalized = request.offsetXNormalized,
+            offsetYNormalized = request.offsetYNormalized,
+        )
     }
 
-    private fun centeredTransform(
+    private fun positionedTransform(
         sourceWidth: Double,
         sourceHeight: Double,
         targetWidth: Double,
         targetHeight: Double,
         scale: Double,
+        offsetXNormalized: Double,
+        offsetYNormalized: Double,
     ): LayoutTransform {
         val renderedWidth = sourceWidth * scale
         val renderedHeight = sourceHeight * scale
+        val centeredX = (targetWidth - renderedWidth) / 2.0
+        val centeredY = (targetHeight - renderedHeight) / 2.0
+        val travelX = abs(targetWidth - renderedWidth) / 2.0
+        val travelY = abs(targetHeight - renderedHeight) / 2.0
 
         return LayoutTransform(
             scale = scale,
-            translationX = (targetWidth - renderedWidth) / 2.0,
-            translationY = (targetHeight - renderedHeight) / 2.0,
+            translationX = centeredX +
+                offsetXNormalized.coerceIn(-1.0, 1.0) * travelX,
+            translationY = centeredY +
+                offsetYNormalized.coerceIn(-1.0, 1.0) * travelY,
             renderedWidth = renderedWidth,
             renderedHeight = renderedHeight,
         )

@@ -13,13 +13,26 @@ enum class WallpaperTarget {
     BOTH,
 }
 
+enum class BackgroundMode {
+    SOLID,
+    BLUR,
+}
+
 data class WallpaperLayoutState(
     val mode: LayoutMode = LayoutMode.CONTAIN,
     val userScale: Double = 1.0,
     val offsetXNormalized: Double = 0.0,
     val offsetYNormalized: Double = 0.0,
     val backgroundColor: Int = 0xFF000000.toInt(),
-)
+    val backgroundMode: BackgroundMode = BackgroundMode.SOLID,
+    val blurRadius: Int = DEFAULT_BLUR_RADIUS,
+    val backgroundImageAlpha: Int = 255,
+) {
+    companion object {
+        const val DEFAULT_BLUR_RADIUS = 12
+        const val MAX_BLUR_RADIUS = 30
+    }
+}
 
 data class WallpaperItem(
     val id: String,
@@ -42,7 +55,7 @@ data class AppSettings(
     val items: List<WallpaperItem> = emptyList(),
 ) {
     companion object {
-        const val CURRENT_SCHEMA_VERSION = 1
+        const val CURRENT_SCHEMA_VERSION = 2
         const val DEFAULT_INTERVAL_MINUTES = 60L
         const val MIN_INTERVAL_MINUTES = 15L
     }

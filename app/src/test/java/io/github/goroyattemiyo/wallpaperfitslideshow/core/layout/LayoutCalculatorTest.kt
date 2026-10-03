@@ -77,6 +77,51 @@ class LayoutCalculatorTest {
     }
 
     @Test
+    fun cropCanShrinkBelowFillScale() {
+        val result = LayoutCalculator.calculate(
+            LayoutRequest(
+                sourceWidth = 1080,
+                sourceHeight = 2400,
+                targetWidth = 1080,
+                targetHeight = 2400,
+                mode = LayoutMode.CROP,
+                userScale = 0.5,
+            ),
+        )
+
+        assertEquals(0.5, result.scale, EPSILON)
+        assertEquals(540.0, result.renderedWidth, EPSILON)
+        assertEquals(1200.0, result.renderedHeight, EPSILON)
+    }
+
+    @Test
+    fun containCanMoveInsideUnusedVerticalSpace() {
+        val top = LayoutCalculator.calculate(
+            LayoutRequest(
+                sourceWidth = 1080,
+                sourceHeight = 1080,
+                targetWidth = 1080,
+                targetHeight = 2400,
+                mode = LayoutMode.CONTAIN,
+                offsetYNormalized = -1.0,
+            ),
+        )
+        val bottom = LayoutCalculator.calculate(
+            LayoutRequest(
+                sourceWidth = 1080,
+                sourceHeight = 1080,
+                targetWidth = 1080,
+                targetHeight = 2400,
+                mode = LayoutMode.CONTAIN,
+                offsetYNormalized = 1.0,
+            ),
+        )
+
+        assertEquals(0.0, top.translationY, EPSILON)
+        assertEquals(1320.0, bottom.translationY, EPSILON)
+    }
+
+    @Test
     fun invalidDimensionsFailFast() {
         assertThrows(IllegalArgumentException::class.java) {
             LayoutCalculator.calculate(

@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.AtomicFile
 import io.github.goroyattemiyo.wallpaperfitslideshow.core.layout.LayoutMode
 import io.github.goroyattemiyo.wallpaperfitslideshow.model.AppSettings
+import io.github.goroyattemiyo.wallpaperfitslideshow.model.BackgroundMode
 import io.github.goroyattemiyo.wallpaperfitslideshow.model.OrderMode
 import io.github.goroyattemiyo.wallpaperfitslideshow.model.WallpaperItem
 import io.github.goroyattemiyo.wallpaperfitslideshow.model.WallpaperLayoutState
@@ -71,7 +72,10 @@ class SettingsStore(context: Context) {
                                 .put("userScale", item.layout.userScale)
                                 .put("offsetXNormalized", item.layout.offsetXNormalized)
                                 .put("offsetYNormalized", item.layout.offsetYNormalized)
-                                .put("backgroundColor", item.layout.backgroundColor),
+                                .put("backgroundColor", item.layout.backgroundColor)
+                                .put("backgroundMode", item.layout.backgroundMode.name)
+                                .put("blurRadius", item.layout.blurRadius)
+                                .put("backgroundImageAlpha", item.layout.backgroundImageAlpha),
                         ),
                 )
             }
@@ -131,6 +135,19 @@ class SettingsStore(context: Context) {
                         "backgroundColor",
                         0xFF000000.toInt(),
                     ),
+                    backgroundMode = enumOrDefault(
+                        layoutJson.optString("backgroundMode"),
+                        BackgroundMode.SOLID,
+                    ),
+                    blurRadius = layoutJson
+                        .optInt(
+                            "blurRadius",
+                            WallpaperLayoutState.DEFAULT_BLUR_RADIUS,
+                        )
+                        .coerceIn(0, WallpaperLayoutState.MAX_BLUR_RADIUS),
+                    backgroundImageAlpha = layoutJson
+                        .optInt("backgroundImageAlpha", 255)
+                        .coerceIn(0, 255),
                 )
 
                 add(
