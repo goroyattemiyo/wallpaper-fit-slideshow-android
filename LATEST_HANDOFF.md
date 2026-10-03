@@ -53,6 +53,8 @@ V1の仕様・アーキテクチャを確定してからAndroid実装へ入る�
 - [x] Pure Kotlin unit tests written
 - [x] Android/Gradle tests executed
 - [ ] Redmi 12 5G / HyperOS実機確認
+  - [x] Debug APK install: PASS (2026-10-03)
+  - [ ] Launch / runtime behavior
 
 ## Known Risks
 
@@ -97,6 +99,8 @@ V1の仕様・アーキテクチャを確定してからAndroid実装へ入る�
 - [ ] integration test
 - [ ] CI
 - [ ] real device
+  - [x] APK install
+  - [ ] app launch / wallpaper behavior
 
 ## Next Action
 
@@ -150,7 +154,7 @@ Verified locally on Windows (2026-10-03):
 
 Unverified:
 
-- APK install / launch on Redmi
+- App launch / wallpaper behavior on Redmi
 - Redmi runtime behavior
 - actual HyperOS preview-to-wallpaper crop difference
 - EXIF edge cases on real files
