@@ -263,3 +263,20 @@ Still pending real-device behavioral verification:
 - gesture editor movement/scale UX
 - preview vs actual wallpaper alignment
 - lock-screen clock overlap avoidance
+
+
+## Real-device UX Verification - 2026-10-03
+
+Verified by user on Redmi 12 5G / HyperOS:
+
+- direct one-finger image positioning works
+- pinch zoom/shrink works without selecting a separate edit mode first
+- direct gesture editing UX is acceptable in the tested flow
+
+Still unverified separately:
+
+- fast slideshow timing / notification behavior
+- blurred background / transparency behavior
+- folder import
+- ZIP import
+- preview-to-actual wallpaper alignment across Home / Lock / Both

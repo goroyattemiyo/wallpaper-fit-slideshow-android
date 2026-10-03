@@ -355,10 +355,10 @@ Timing is best-effort rather than an exact-alarm guarantee. Record actual behavi
 
 ## 22. Direct Gesture Editing
 
-- [ ] No "自由調整" selection is required before touching the preview
-- [ ] One-finger drag works immediately
-- [ ] Pinch works immediately from whole-image mode
+- [x] No "自由調整" selection is required before touching the preview
+- [x] One-finger drag works immediately
+- [x] Pinch works immediately from whole-image mode
 - [ ] First pinch does not cause an obvious size jump
-- [ ] Pinch can shrink and enlarge
+- [x] Pinch can shrink and enlarge
 - [ ] "全体表示に戻す" restores centered whole-image view
 - [ ] After restoring whole-image view, pinch editing can start again directly
