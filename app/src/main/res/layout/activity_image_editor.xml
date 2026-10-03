@@ -1,158 +1,117 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true"
-    android:fitsSystemWindows="true">
+    android:fitsSystemWindows="true"
+    android:orientation="vertical"
+    android:paddingLeft="12dp"
+    android:paddingTop="8dp"
+    android:paddingRight="12dp"
+    android:paddingBottom="8dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp">
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/back_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="0dp"
+            android:text="← 戻る" />
 
         <TextView
             android:id="@+id/editor_title"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:ellipsize="middle"
+            android:maxLines="1"
+            android:textAppearance="?android:attr/textAppearanceMedium"
             android:textStyle="bold" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="6dp"
+        android:layout_weight="1"
+        android:gravity="center">
 
         <io.github.goroyattemiyo.wallpaperfitslideshow.ui.WallpaperPreviewView
             android:id="@+id/wallpaper_preview"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
             android:background="#000000"
-            android:minHeight="240dp" />
+            android:minWidth="120dp"
+            android:minHeight="180dp" />
+    </FrameLayout>
 
-        <TextView
-            android:layout_width="match_parent"
+    <TextView
+        android:id="@+id/gesture_status"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
+        android:text="指で移動・ピンチで縮小/拡大"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/contain_button"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="ドラッグで位置調整。Cropではピンチで縮小・拡大できます。" />
+            android:layout_weight="1"
+            android:text="全体表示" />
 
-        <TextView
-            android:id="@+id/zoom_label"
-            android:layout_width="match_parent"
+        <Button
+            android:id="@+id/crop_button"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="倍率: 100%" />
+            android:layout_weight="1"
+            android:text="自由調整" />
 
-        <SeekBar
-            android:id="@+id/zoom_seek"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-
-        <TextView
-            android:id="@+id/vertical_label"
-            android:layout_width="match_parent"
+        <Button
+            android:id="@+id/background_button"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="上下位置: 中央" />
+            android:layout_weight="1"
+            android:text="背景" />
 
-        <SeekBar
-            android:id="@+id/vertical_seek"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
+        <Button
+            android:id="@+id/reset_button"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/contain_button"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="全体表示" />
-
-            <Button
-                android:id="@+id/crop_button"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Crop" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/background_button"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="背景スタイル" />
-
-            <Button
-                android:id="@+id/background_color_button"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="背景色" />
-
-            <Button
-                android:id="@+id/reset_button"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="位置をリセット" />
-        </LinearLayout>
-
-        <TextView
-            android:id="@+id/blur_label"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="ぼかし: 12" />
-
-        <SeekBar
-            android:id="@+id/blur_seek"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-
-        <TextView
-            android:id="@+id/transparency_label"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="背景画像の透明度: 0%" />
-
-        <SeekBar
-            android:id="@+id/transparency_seek"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/save_button"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="保存" />
-
-            <Button
-                android:id="@+id/apply_button"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="この1枚を今すぐ壁紙にする" />
-
-            <Button
-                android:id="@+id/cancel_button"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="キャンセル" />
-        </LinearLayout>
-
+            android:layout_weight="1"
+            android:text="リセット" />
     </LinearLayout>
-</ScrollView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/save_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="保存して戻る" />
+
+        <Button
+            android:id="@+id/apply_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:text="この1枚を今すぐ壁紙にする" />
+    </LinearLayout>
+
+</LinearLayout>

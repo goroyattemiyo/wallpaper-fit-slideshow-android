@@ -5,14 +5,19 @@ import android.app.AlertDialog
 import android.graphics.Color
 import android.os.Bundle
 import android.text.InputType
+import android.view.View
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
 import android.widget.SeekBar
+import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import io.github.goroyattemiyo.wallpaperfitslideshow.core.layout.LayoutMode
 import io.github.goroyattemiyo.wallpaperfitslideshow.data.SettingsStore
 import io.github.goroyattemiyo.wallpaperfitslideshow.model.BackgroundMode
+import io.github.goroyattemiyo.wallpaperfitslideshow.model.WallpaperLayoutState
 import io.github.goroyattemiyo.wallpaperfitslideshow.ui.WallpaperPreviewView
 import io.github.goroyattemiyo.wallpaperfitslideshow.wallpaper.SourceBitmapLoader
 import io.github.goroyattemiyo.wallpaperfitslideshow.wallpaper.WallpaperOperationResult
@@ -25,20 +30,12 @@ class ImageEditorActivity : Activity() {
     private lateinit var settingsStore: SettingsStore
     private lateinit var preview: WallpaperPreviewView
     private lateinit var titleText: TextView
+    private lateinit var gestureStatusText: TextView
     private lateinit var operationService: WallpaperOperationService
-    private lateinit var zoomSeekBar: SeekBar
-    private lateinit var verticalSeekBar: SeekBar
-    private lateinit var blurSeekBar: SeekBar
-    private lateinit var transparencySeekBar: SeekBar
-    private lateinit var zoomLabel: TextView
-    private lateinit var verticalLabel: TextView
-    private lateinit var blurLabel: TextView
-    private lateinit var transparencyLabel: TextView
-    private var bindingEditorControls = false
 
     private val executor: ExecutorService = Executors.newSingleThreadExecutor()
-
     private var itemId: String? = null
+    private var suppressBackSave = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,27 +45,21 @@ class ImageEditorActivity : Activity() {
         operationService = WallpaperOperationService(applicationContext)
         preview = findViewById(R.id.wallpaper_preview)
         titleText = findViewById(R.id.editor_title)
-        zoomSeekBar = findViewById(R.id.zoom_seek)
-        verticalSeekBar = findViewById(R.id.vertical_seek)
-        blurSeekBar = findViewById(R.id.blur_seek)
-        transparencySeekBar = findViewById(R.id.transparency_seek)
-        zoomLabel = findViewById(R.id.zoom_label)
-        verticalLabel = findViewById(R.id.vertical_label)
-        blurLabel = findViewById(R.id.blur_label)
-        transparencyLabel = findViewById(R.id.transparency_label)
+        gestureStatusText = findViewById(R.id.gesture_status)
 
         itemId = intent.getStringExtra(EXTRA_ITEM_ID)
         val item = settingsStore.load().items.firstOrNull { it.id == itemId }
         if (item == null) {
             Toast.makeText(this, "画像設定が見つかりません。", Toast.LENGTH_LONG).show()
+            suppressBackSave = true
             finish()
             return
         }
 
         titleText.text = item.displayName
         preview.setLayoutState(item.layout)
-        configureAdjustmentControls()
-        syncAdjustmentControls(preview.layoutState)
+        preview.onLayoutStateChanged = ::updateGestureStatus
+        updateGestureStatus(preview.layoutState)
 
         val geometry = WallpaperTargetSizeResolver(applicationContext).resolve()
         preview.setTargetSize(
@@ -76,6 +67,9 @@ class ImageEditorActivity : Activity() {
             geometry.visibleHeight,
         )
 
+        findViewById<Button>(R.id.back_button).setOnClickListener {
+            saveAndFinish(showToast = false)
+        }
         findViewById<Button>(R.id.contain_button).setOnClickListener {
             preview.setMode(LayoutMode.CONTAIN)
         }
@@ -83,22 +77,16 @@ class ImageEditorActivity : Activity() {
             preview.setMode(LayoutMode.CROP)
         }
         findViewById<Button>(R.id.background_button).setOnClickListener {
-            showBackgroundStyleDialog()
-        }
-        findViewById<Button>(R.id.background_color_button).setOnClickListener {
-            showBackgroundColorDialog()
+            showBackgroundSettingsDialog()
         }
         findViewById<Button>(R.id.reset_button).setOnClickListener {
             preview.resetCurrentMode()
         }
         findViewById<Button>(R.id.save_button).setOnClickListener {
-            saveAndFinish()
+            saveAndFinish(showToast = true)
         }
         findViewById<Button>(R.id.apply_button).setOnClickListener {
             saveAndApply()
-        }
-        findViewById<Button>(R.id.cancel_button).setOnClickListener {
-            finish()
         }
 
         executor.execute {
@@ -117,6 +105,7 @@ class ImageEditorActivity : Activity() {
                     }
                     return@runOnUiThread
                 }
+
                 result.onSuccess { loaded ->
                     preview.setBitmap(
                         value = loaded.bitmap,
@@ -124,14 +113,19 @@ class ImageEditorActivity : Activity() {
                         sourceHeight = loaded.info.logicalHeight,
                     )
                 }.onFailure {
-                        Toast.makeText(
-                            this,
-                            it.message ?: "画像を読み込めませんでした。",
-                            Toast.LENGTH_LONG,
-                        ).show()
-                    }
+                    Toast.makeText(
+                        this,
+                        it.message ?: "画像を読み込めませんでした。",
+                        Toast.LENGTH_LONG,
+                    ).show()
+                }
             }
         }
+    }
+
+    @Deprecated("Uses Activity back handling to avoid an additional Activity dependency.")
+    override fun onBackPressed() {
+        saveAndFinish(showToast = false)
     }
 
     override fun onDestroy() {
@@ -140,103 +134,22 @@ class ImageEditorActivity : Activity() {
         super.onDestroy()
     }
 
-    private fun configureAdjustmentControls() {
-        zoomSeekBar.max = ZOOM_PROGRESS_MAX
-        verticalSeekBar.max = 200
-        blurSeekBar.max = io.github.goroyattemiyo.wallpaperfitslideshow.model.WallpaperLayoutState.MAX_BLUR_RADIUS
-        transparencySeekBar.max = 100
-
-        preview.onLayoutStateChanged = ::syncAdjustmentControls
-
-        zoomSeekBar.setOnSeekBarChangeListener(
-            SimpleSeekListener { progress ->
-                if (!bindingEditorControls) {
-                    preview.setUserScale(
-                        ZOOM_MIN + progress.toDouble() / 100.0,
-                    )
-                }
-            },
-        )
-        verticalSeekBar.setOnSeekBarChangeListener(
-            SimpleSeekListener { progress ->
-                if (!bindingEditorControls) {
-                    preview.setVerticalOffset(
-                        (progress - 100).toDouble() / 100.0,
-                    )
-                }
-            },
-        )
-        blurSeekBar.setOnSeekBarChangeListener(
-            SimpleSeekListener { progress ->
-                if (!bindingEditorControls) {
-                    preview.setBlurRadius(progress)
-                }
-            },
-        )
-        transparencySeekBar.setOnSeekBarChangeListener(
-            SimpleSeekListener { progress ->
-                if (!bindingEditorControls) {
-                    val alpha = (
-                        255.0 * (100 - progress).toDouble() / 100.0
-                    ).toInt()
-                    preview.setBackgroundImageAlpha(alpha)
-                }
-            },
-        )
-    }
-
-    private fun syncAdjustmentControls(
-        state: io.github.goroyattemiyo.wallpaperfitslideshow.model.WallpaperLayoutState,
-    ) {
-        bindingEditorControls = true
-        try {
-            zoomSeekBar.isEnabled = state.mode == LayoutMode.CROP
-            blurSeekBar.isEnabled = state.backgroundMode == BackgroundMode.BLUR
-            transparencySeekBar.isEnabled = state.backgroundMode == BackgroundMode.BLUR
-
-            zoomSeekBar.progress = (
-                (state.userScale - ZOOM_MIN) * 100.0
-            ).toInt().coerceIn(0, ZOOM_PROGRESS_MAX)
-            verticalSeekBar.progress = (
-                state.offsetYNormalized * 100.0 + 100.0
-            ).toInt().coerceIn(0, 200)
-            blurSeekBar.progress = state.blurRadius
-            transparencySeekBar.progress = (
-                100.0 - state.backgroundImageAlpha.toDouble() * 100.0 / 255.0
-            ).toInt().coerceIn(0, 100)
-
-            zoomLabel.text = "倍率: ${(state.userScale * 100).toInt()}%"
-            verticalLabel.text = "上下位置: ${verticalPositionLabel(state.offsetYNormalized)}"
-            blurLabel.text = "ぼかし: ${state.blurRadius}"
-            transparencyLabel.text =
-                "背景画像の透明度: ${transparencySeekBar.progress}%"
-        } finally {
-            bindingEditorControls = false
-        }
-    }
-
-    private fun verticalPositionLabel(value: Double): String =
-        when {
-            value <= -0.95 -> "上端"
-            value >= 0.95 -> "下端"
-            kotlin.math.abs(value) < 0.05 -> "中央"
-            value < 0.0 -> "上 ${(-value * 100).toInt()}%"
-            else -> "下 ${(value * 100).toInt()}%"
-        }
-
-    private fun showBackgroundStyleDialog() {
-        val labels = arrayOf(
-            "単色",
-            "同じ画像をぼかして背景にする",
-        )
-        AlertDialog.Builder(this)
-            .setTitle("背景スタイル")
-            .setItems(labels) { _, which ->
-                preview.setBackgroundMode(
-                    if (which == 1) BackgroundMode.BLUR else BackgroundMode.SOLID,
-                )
+    private fun updateGestureStatus(state: WallpaperLayoutState) {
+        gestureStatusText.text = buildString {
+            append(
+                if (state.mode == LayoutMode.CROP) {
+                    "自由調整"
+                } else {
+                    "全体表示"
+                },
+            )
+            append("  ")
+            append((state.userScale * 100).toInt())
+            append("%  /  指で移動")
+            if (state.mode == LayoutMode.CROP) {
+                append("・ピンチで縮小/拡大")
             }
-            .show()
+        }
     }
 
     private fun saveLayout(): String? {
@@ -255,11 +168,16 @@ class ImageEditorActivity : Activity() {
         return id
     }
 
-    private fun saveAndFinish() {
-        if (saveLayout() == null) {
+    private fun saveAndFinish(showToast: Boolean) {
+        if (suppressBackSave || saveLayout() == null) {
+            finish()
             return
         }
-        Toast.makeText(this, "表示設定を保存しました。", Toast.LENGTH_SHORT).show()
+
+        if (showToast) {
+            Toast.makeText(this, "表示設定を保存しました。", Toast.LENGTH_SHORT).show()
+        }
+        suppressBackSave = true
         finish()
     }
 
@@ -273,6 +191,7 @@ class ImageEditorActivity : Activity() {
                 if (isFinishing || isDestroyed) {
                     return@runOnUiThread
                 }
+
                 val message = when (result) {
                     is WallpaperOperationResult.Success -> "この画像を壁紙へ適用しました。"
                     is WallpaperOperationResult.Failure -> result.message
@@ -284,6 +203,110 @@ class ImageEditorActivity : Activity() {
             }
         }
     }
+
+    private fun showBackgroundSettingsDialog() {
+        val dialogView = layoutInflater.inflate(
+            R.layout.dialog_background_settings,
+            null,
+        )
+        val modeSpinner = dialogView.findViewById<Spinner>(
+            R.id.background_mode_spinner,
+        )
+        val colorButton = dialogView.findViewById<Button>(
+            R.id.background_color_dialog_button,
+        )
+        val blurLabel = dialogView.findViewById<TextView>(
+            R.id.dialog_blur_label,
+        )
+        val blurSeek = dialogView.findViewById<SeekBar>(
+            R.id.dialog_blur_seek,
+        )
+        val transparencyLabel = dialogView.findViewById<TextView>(
+            R.id.dialog_transparency_label,
+        )
+        val transparencySeek = dialogView.findViewById<SeekBar>(
+            R.id.dialog_transparency_seek,
+        )
+
+        modeSpinner.adapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_spinner_item,
+            listOf("単色", "同じ画像をぼかす"),
+        ).also {
+            it.setDropDownViewResource(
+                android.R.layout.simple_spinner_dropdown_item,
+            )
+        }
+        modeSpinner.setSelection(
+            if (preview.layoutState.backgroundMode == BackgroundMode.BLUR) 1 else 0,
+            false,
+        )
+
+        blurSeek.max = WallpaperLayoutState.MAX_BLUR_RADIUS
+        blurSeek.progress = preview.layoutState.blurRadius
+        transparencySeek.max = 100
+        transparencySeek.progress = backgroundTransparencyPercent()
+
+        fun refreshBackgroundLabels() {
+            val blurEnabled = preview.layoutState.backgroundMode == BackgroundMode.BLUR
+            blurSeek.isEnabled = blurEnabled
+            transparencySeek.isEnabled = blurEnabled
+            blurLabel.text = "ぼかし: \${preview.layoutState.blurRadius}"
+            transparencyLabel.text =
+                "背景画像の透明度: \${backgroundTransparencyPercent()}%"
+        }
+
+        modeSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(
+                parent: AdapterView<*>?,
+                view: View?,
+                position: Int,
+                id: Long,
+            ) {
+                preview.setBackgroundMode(
+                    if (position == 1) BackgroundMode.BLUR else BackgroundMode.SOLID,
+                )
+                refreshBackgroundLabels()
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) = Unit
+        }
+
+        colorButton.setOnClickListener {
+            showBackgroundColorDialog()
+        }
+
+        blurSeek.setOnSeekBarChangeListener(
+            SimpleSeekListener { progress ->
+                preview.setBlurRadius(progress)
+                refreshBackgroundLabels()
+            },
+        )
+
+        transparencySeek.setOnSeekBarChangeListener(
+            SimpleSeekListener { progress ->
+                val alpha = (
+                    255.0 * (100 - progress).toDouble() / 100.0
+                ).toInt()
+                preview.setBackgroundImageAlpha(alpha)
+                refreshBackgroundLabels()
+            },
+        )
+
+        refreshBackgroundLabels()
+
+        AlertDialog.Builder(this)
+            .setTitle("背景設定")
+            .setView(dialogView)
+            .setPositiveButton("閉じる", null)
+            .show()
+    }
+
+    private fun backgroundTransparencyPercent(): Int =
+        (
+            100.0 -
+                preview.layoutState.backgroundImageAlpha.toDouble() * 100.0 / 255.0
+        ).toInt().coerceIn(0, 100)
 
     private fun showBackgroundColorDialog() {
         val names = arrayOf(
@@ -363,7 +386,5 @@ class ImageEditorActivity : Activity() {
     companion object {
         const val EXTRA_ITEM_ID = "item_id"
         private const val PREVIEW_MAX_PIXELS = 2_000_000L
-        private const val ZOOM_MIN = 0.2
-        private const val ZOOM_PROGRESS_MAX = 480
     }
 }
