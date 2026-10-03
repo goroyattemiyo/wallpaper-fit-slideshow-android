@@ -500,3 +500,38 @@ Still not yet verified for this UI batch:
 - Widget button behavior after placement
 - Home/Lock blur visual result after the latest UI-only changes
 - editor layout clipping on device
+
+
+## Widget Control Fix + Pseudo Slider - 2026-10-03
+
+Real-device finding before this fix:
+
+- Redmi / HyperOS: Widget placement PASS
+- previous - / + / RESET controls: not reliably responding
+- widget controls are NOT yet recorded as PASS
+
+Current implementation:
+
+- Widget controls changed from TextView controls back to Button controls
+- Zoom controls: - / + / RESET
+- Blur controls: - / +
+- each broadcast PendingIntent now has a unique action, request code and data URI
+- Widget state refreshes immediately after settings mutation, before wallpaper rendering finishes
+- Zoom and Blur show display-only pseudo slider bars with a moving knob
+- no SeekBar/custom View added to RemoteViews
+- updatePeriodMillis remains 0; no polling added
+- added WidgetSliderFormatter and unit tests for min/middle/max/clamp output
+
+Static review:
+
+- Widget R.id references: PASS
+- provider/controller brace balance: PASS
+- five Button controls present
+- unique PendingIntent data URI path present
+- immediate Widget refresh callback present
+
+Verification still required:
+
+- Unit/Lint/assemble/install after this fix: NOT YET RUN
+- Redmi - / + / RESET behavior after this fix: NOT YET VERIFIED
+- CI: NOT RUN
