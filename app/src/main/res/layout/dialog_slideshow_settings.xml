@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingLeft="22dp"
+        android:paddingTop="8dp"
+        android:paddingRight="22dp"
+        android:paddingBottom="12dp">
+
+        <TextView
+            style="@style/AppTextSectionTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="スライドショー" />
+
+        <TextView
+            style="@style/AppTextHelper"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="切替順" />
+
+        <Spinner
+            android:id="@+id/dialog_order_spinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            style="@style/AppTextHelper"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="切替間隔" />
+
+        <Spinner
+            android:id="@+id/dialog_interval_spinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="14dp"
+            android:layout_marginBottom="12dp"
+            android:background="@color/border" />
+
+        <TextView
+            style="@style/AppTextSectionTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="壁紙表示" />
+
+        <TextView
+            android:id="@+id/dialog_home_blur_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="壁紙ぼかし: OFF"
+            android:textColor="@color/text_primary" />
+
+        <SeekBar
+            android:id="@+id/dialog_home_blur_seek"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="30"
+            android:progressTint="@color/accent"
+            android:thumbTint="@color/accent" />
+
+        <TextView
+            style="@style/AppTextHelper"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="ぼかしはホーム画面全体に適用します。" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="14dp"
+            android:layout_marginBottom="12dp"
+            android:background="@color/border" />
+
+        <TextView
+            style="@style/AppTextSectionTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="ホーム画面Widget" />
+
+        <TextView
+            style="@style/AppTextHelper"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:text="ホーム画面から現在の壁紙をZoom / Blurできます。" />
+
+        <TextView
+            android:id="@+id/widget_pin_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Widget：確認中"
+            android:textColor="@color/text_primary"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/widget_pin_button"
+            style="@style/AppButtonPrimary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="＋ Widgetをホーム画面に追加" />
+
+        <TextView
+            style="@style/AppTextHelper"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="10秒〜5分は高速モードです。短い間隔では通知を表示して動作します。" />
+    </LinearLayout>
+</ScrollView>
