@@ -362,3 +362,43 @@ Timing is best-effort rather than an exact-alarm guarantee. Record actual behavi
 - [x] Pinch can shrink and enlarge
 - [ ] "全体表示に戻す" restores centered whole-image view
 - [ ] After restoring whole-image view, pinch editing can start again directly
+
+
+## 23. Home / Lock Split Playlist + Thumbnail List
+
+After installing the schema-4 build over the previous build:
+
+- [ ] Existing images remain in the list
+- [ ] Previous enabled state migrates to both Home and Lock checks
+- [ ] Previous layout migrates to both Home and Lock layouts
+- [ ] Previous current wallpaper indication migrates according to the old target
+
+List UI:
+
+- [ ] Each file occupies one row
+- [ ] A small correctly oriented thumbnail appears
+- [ ] Long filenames stay on one line and ellipsize at the end
+- [ ] Home and Lock checkboxes can be toggled independently
+- [ ] Scrolling many images does not visibly decode full-resolution images or crash
+- [ ] Tapping a row opens the detail card
+- [ ] Detail card shows the full filename
+- [ ] Detail card shows Home/Lock ON/OFF, layout state, blur state and current-wallpaper state
+- [ ] Edit / up / down / delete work from the detail card
+
+Independent layout:
+
+- [ ] Editor has Home and Lock selectors
+- [ ] Home can be positioned/scaled, then Lock can be positioned/scaled differently
+- [ ] Switching Home → Lock → Home restores each draft independently
+- [ ] Closing and reopening restores both layouts
+- [ ] Direct apply from Home editor changes only Home wallpaper
+- [ ] Direct apply from Lock editor changes only Lock wallpaper
+
+Slideshow:
+
+- [ ] Home playlist only uses Home-checked images
+- [ ] Lock playlist only uses Lock-checked images
+- [ ] Manual Next advances Home and Lock independently
+- [ ] If Home has 2+ and Lock has fewer than 2, periodic slideshow continues only for Home
+- [ ] If Lock has 2+ and Home has fewer than 2, periodic slideshow continues only for Lock
+- [ ] Disabling a currently displayed image does not falsely erase its "current" indication before the next change

@@ -132,12 +132,14 @@ WorkManager / FastSlideshowServiceを隔離する。
 1回の実行で行うこと:
 
 1. slideshow enabled確認
-2. playlist読込
-3. 次の有効画像選択
-4. 1画像render
-5. wallpaper適用
-6. current index / result更新
+2. Home / Lock playlist読込
+3. Home / Lockそれぞれで対象が2枚以上ある側だけ次画像を選択
+4. 対象ごとに1画像ずつrender
+5. Home / Lockへ個別適用
+6. currentHomeItemId / currentLockItemId / result更新
 7. Bitmap等解放
+
+Home / Lockは同じ切替間隔・順序モードを共有するが、候補リストと現在位置は独立する。
 
 ### SettingsStore
 
@@ -158,22 +160,28 @@ AppSettings
 - slideshowEnabled
 - intervalSeconds
 - orderMode
-- target
-- currentItemId
+- currentHomeItemId
+- currentLockItemId
 
 WallpaperItem
 - id
 - uri
+- displayName
 - order
-- enabled
-- layout
+- homeEnabled
+- lockEnabled
+- homeLayout
+- lockLayout
 
-Layout
+WallpaperLayoutState
 - mode
 - userScale
 - offsetXNormalized
 - offsetYNormalized
 - backgroundColor
+- backgroundMode
+- blurRadius
+- backgroundImageAlpha
 ```
 
 URIそのものをIDにせず、内部stable IDを持つ。
@@ -267,3 +275,15 @@ Rules:
 - no hidden permanent service
 - no automatic boot restart for fast mode
 - HyperOS behavior remains a real-device verification item
+
+
+### ThumbnailLoader
+
+一覧専用の軽量サムネイル読み込み。
+
+- SourceBitmapLoaderを小さいpixel上限で使用
+- EXIF補正を共通利用
+- 2-thread executor
+- 約8MiB上限のメモリLruCache
+- 一覧ImageViewのtagでrow再利用時の取り違えを防止
+- 元画像のフルdecodeを一覧では行わない

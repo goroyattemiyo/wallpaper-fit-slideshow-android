@@ -280,3 +280,40 @@ Still unverified separately:
 - folder import
 - ZIP import
 - preview-to-actual wallpaper alignment across Home / Lock / Both
+
+
+## Home / Lock Split + Thumbnail List - 2026-10-03
+
+Implemented on `design/v1-foundation`, local re-verification pending.
+
+Current design:
+
+- settings schema bumped to 4
+- legacy `enabled` migrates to `homeEnabled` + `lockEnabled`
+- legacy `layout` migrates to `homeLayout` + `lockLayout`
+- legacy current item migrates to Home/Lock current IDs according to old target
+- global slideshow target selector removed
+- order mode and interval remain shared
+- Home and Lock candidate lists / current positions are independent
+- periodic execution advances only sides with 2+ targets
+- manual Next can apply sides with 1+ targets
+- list is one file per row
+- small sampled thumbnail + ellipsized filename + Home/Lock checkboxes
+- selected row shows an elevated detail card with full filename/status/actions
+- editor has Home / Lock switch and independent layout drafts
+- direct apply targets the currently edited Home or Lock side
+- thumbnail cache is bounded (~8 MiB) and does not full-decode the list
+
+Commits in this feature batch:
+
+- `56603e0` split Home/Lock data and operation state
+- `ece051c` one-line thumbnail Home/Lock list UI
+- `f87f1e0` wire Home/Lock selection and detail card
+- `7a5a204` independent Home/Lock editor layouts
+- `ffdd56f` independent-state unit coverage
+
+Verification status:
+
+- static review performed
+- unit/lint/build/install for this batch: NOT YET VERIFIED
+- CI: NOT RUN
