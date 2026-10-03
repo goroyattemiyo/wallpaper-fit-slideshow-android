@@ -230,16 +230,23 @@ class LockPinchWallpaperService : WallpaperService() {
 
         private fun persistLayout() {
             val itemId = activeItemId ?: return
-            settingsStore.update { settings ->
-                settings.copy(
-                    items = settings.items.map { item ->
-                        if (item.id == itemId) {
-                            item.copy(lockLayout = layoutDraft)
-                        } else {
-                            item
-                        }
-                    },
-                )
+            val layoutToSave = layoutDraft
+            if (executor.isShutdown) {
+                return
+            }
+
+            executor.execute {
+                settingsStore.update { settings ->
+                    settings.copy(
+                        items = settings.items.map { item ->
+                            if (item.id == itemId) {
+                                item.copy(lockLayout = layoutToSave)
+                            } else {
+                                item
+                            }
+                        },
+                    )
+                }
             }
         }
 
