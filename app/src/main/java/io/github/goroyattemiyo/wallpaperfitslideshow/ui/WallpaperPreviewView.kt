@@ -33,7 +33,14 @@ class WallpaperPreviewView @JvmOverloads constructor(
         context,
         object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
             override fun onScale(detector: ScaleGestureDetector): Boolean {
-                if (layoutState.mode != LayoutMode.CROP) return false
+                if (bitmap == null || width <= 0 || height <= 0) {
+                    return false
+                }
+
+                if (layoutState.mode != LayoutMode.CROP) {
+                    switchToFreeScalePreservingSize()
+                }
+
                 updateLayoutState(
                     layoutState.copy(
                         userScale = (
@@ -104,8 +111,15 @@ class WallpaperPreviewView @JvmOverloads constructor(
         )
     }
 
-    fun setMode(mode: LayoutMode) {
-        updateLayoutState(layoutState.copy(mode = mode))
+    fun showWholeImage() {
+        updateLayoutState(
+            layoutState.copy(
+                mode = LayoutMode.CONTAIN,
+                userScale = 1.0,
+                offsetXNormalized = 0.0,
+                offsetYNormalized = 0.0,
+            ),
+        )
     }
 
     fun setUserScale(scale: Double) {
@@ -279,6 +293,45 @@ class WallpaperPreviewView @JvmOverloads constructor(
     override fun performClick(): Boolean {
         super.performClick()
         return true
+    }
+
+    private fun switchToFreeScalePreservingSize() {
+        if (logicalSourceWidth <= 0 || logicalSourceHeight <= 0 ||
+            width <= 0 || height <= 0
+        ) {
+            updateLayoutState(layoutState.copy(mode = LayoutMode.CROP))
+            return
+        }
+
+        val current = LayoutCalculator.calculate(
+            LayoutRequest(
+                sourceWidth = logicalSourceWidth,
+                sourceHeight = logicalSourceHeight,
+                targetWidth = width,
+                targetHeight = height,
+                mode = LayoutMode.CONTAIN,
+                userScale = 1.0,
+                offsetXNormalized = layoutState.offsetXNormalized,
+                offsetYNormalized = layoutState.offsetYNormalized,
+            ),
+        )
+        val fillScale = kotlin.math.max(
+            width.toDouble() / logicalSourceWidth.toDouble(),
+            height.toDouble() / logicalSourceHeight.toDouble(),
+        )
+        val initialUserScale = (
+            current.scale / fillScale
+        ).coerceIn(
+            LayoutCalculator.MIN_CROP_USER_SCALE,
+            LayoutCalculator.MAX_CROP_USER_SCALE,
+        )
+
+        updateLayoutState(
+            layoutState.copy(
+                mode = LayoutMode.CROP,
+                userScale = initialUserScale,
+            ),
+        )
     }
 
     private fun panBy(

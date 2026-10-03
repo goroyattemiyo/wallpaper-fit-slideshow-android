@@ -71,10 +71,7 @@ class ImageEditorActivity : Activity() {
             saveAndFinish(showToast = false)
         }
         findViewById<Button>(R.id.contain_button).setOnClickListener {
-            preview.setMode(LayoutMode.CONTAIN)
-        }
-        findViewById<Button>(R.id.crop_button).setOnClickListener {
-            preview.setMode(LayoutMode.CROP)
+            preview.showWholeImage()
         }
         findViewById<Button>(R.id.background_button).setOnClickListener {
             showBackgroundSettingsDialog()
@@ -140,17 +137,16 @@ class ImageEditorActivity : Activity() {
         gestureStatusText.text = buildString {
             append(
                 if (state.mode == LayoutMode.CROP) {
-                    "自由調整"
+                    "調整中  "
                 } else {
-                    "全体表示"
+                    "全体表示  "
                 },
             )
-            append("  ")
-            append((state.userScale * 100).toInt())
-            append("%  /  指で移動")
             if (state.mode == LayoutMode.CROP) {
-                append("・ピンチで縮小/拡大")
+                append((state.userScale * 100).toInt())
+                append("%  /  ")
             }
+            append("指で移動・ピンチで縮小/拡大")
         }
     }
 

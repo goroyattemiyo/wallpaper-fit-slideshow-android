@@ -70,14 +70,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="全体表示" />
-
-        <Button
-            android:id="@+id/crop_button"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="自由調整" />
+            android:text="全体表示に戻す" />
 
         <Button
             android:id="@+id/background_button"

@@ -351,3 +351,14 @@ Timing is best-effort rather than an exact-alarm guarantee. Record actual behavi
 - [ ] "全体表示" remains available as a quick fit mode
 - [ ] Background blur/transparency controls are inside the Background dialog rather than always occupying the editor
 - [ ] "この1枚を今すぐ壁紙にする" remains visible
+
+
+## 22. Direct Gesture Editing
+
+- [ ] No "自由調整" selection is required before touching the preview
+- [ ] One-finger drag works immediately
+- [ ] Pinch works immediately from whole-image mode
+- [ ] First pinch does not cause an obvious size jump
+- [ ] Pinch can shrink and enlarge
+- [ ] "全体表示に戻す" restores centered whole-image view
+- [ ] After restoring whole-image view, pinch editing can start again directly
