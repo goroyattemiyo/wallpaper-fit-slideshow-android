@@ -33,13 +33,18 @@ if (-not $env:JAVA_HOME) {
     }
 }
 
-$javaExe = if ($env:JAVA_HOME) {
-    Join-Path $env:JAVA_HOME "bin\java.exe"
+$javaExe = $null
+if ($env:JAVA_HOME) {
+    $javaExe = Join-Path $env:JAVA_HOME "bin\java.exe"
 } else {
-    (Get-Command java.exe -ErrorAction Stop).Source
+    $javaCommand = Get-Command java.exe -ErrorAction SilentlyContinue
+    if ($javaCommand) {
+        $javaExe = $javaCommand.Source
+    }
 }
-if (-not (Test-Path $javaExe)) {
-    throw "Javaが見つかりません。Android StudioのJBRまたはJDK 17+を用意してください。"
+
+if (-not $javaExe -or -not (Test-Path $javaExe)) {
+    throw "Java was not found. Install Android Studio or JDK 17+."
 }
 
 $sdk = $env:ANDROID_HOME
@@ -52,15 +57,17 @@ if (-not $sdk) {
         $sdk = $defaultSdk
     }
 }
+
 if (-not $sdk -or -not (Test-Path $sdk)) {
-    throw "Android SDKが見つかりません。ANDROID_HOME/ANDROID_SDK_ROOT または Android Studio SDK を確認してください。"
+    throw "Android SDK was not found. Check ANDROID_HOME, ANDROID_SDK_ROOT, or Android Studio SDK settings."
 }
 
 $env:ANDROID_HOME = $sdk
 $env:ANDROID_SDK_ROOT = $sdk
 
-if (-not (Test-Path (Join-Path $sdk "platforms\android-36"))) {
-    throw "Android SDK Platform 36 がありません。Android Studio > SDK Manager で Android 16 (API 36) を追加してください。"
+$platform36 = Join-Path $sdk "platforms\android-36"
+if (-not (Test-Path $platform36)) {
+    throw "Android SDK Platform 36 is missing. Install Android 16 / API 36 from SDK Manager."
 }
 
 Write-Host "Android SDK: $sdk"
@@ -80,8 +87,9 @@ Invoke-Checked ".\gradlew.bat" "--no-daemon" "assembleDebug"
 
 $apk = Join-Path $repoRoot "app\build\outputs\apk\debug\app-debug.apk"
 if (-not (Test-Path $apk)) {
-    throw "Buildは終了しましたがAPKが見つかりません: $apk"
+    throw "Build finished but APK was not found: $apk"
 }
+
 Write-Host ""
 Write-Host "PASS: local tests / lint / debug build"
 Write-Host "APK: $apk"
@@ -92,7 +100,7 @@ if (-not $Install) {
 
 $adb = Join-Path $sdk "platform-tools\adb.exe"
 if (-not (Test-Path $adb)) {
-    throw "adbが見つかりません。SDK Platform-Toolsを確認してください。"
+    throw "adb was not found. Install Android SDK Platform-Tools."
 }
 
 Write-Host ""
@@ -103,12 +111,13 @@ $deviceLines = & $adb devices | Select-Object -Skip 1 | Where-Object {
     $_ -match "\tdevice$"
 }
 if (-not $deviceLines) {
-    throw "ADB接続済み端末がありません。USBデバッグと接続許可を確認してください。"
+    throw "No authorized ADB device found. Check USB debugging and device authorization."
 }
 
 $adbArgs = @()
 if ($Serial) {
-    $adbArgs += @("-s", $Serial)
+    $adbArgs += "-s"
+    $adbArgs += $Serial
 }
 
 & $adb @adbArgs install -r $apk
