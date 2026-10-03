@@ -212,3 +212,23 @@ Implemented, pending local re-verification:
 - one-finger drag for positioning
 - persistent zoom/position sliders removed from main editor
 - blur/transparency moved into Background dialog
+
+
+## Local Verification Failure / Fix - 2026-10-03
+
+Observed on Windows local verification:
+
+- `compileDebugKotlin`: PASS
+- `testDebugUnitTest`: PASS
+- `lintDebug`: FAIL
+- lint error: `GestureBackNavigation` caused by `ImageEditorActivity.onBackPressed()`
+
+Fix applied:
+
+- removed deprecated `onBackPressed()` override
+- system predictive-back now uses normal Activity behavior
+- current editor state is persisted from `onStop()`
+- explicit top Back button still saves before `finish()`
+- foreground notification action updated away from deprecated builder overload
+
+Re-verification required.

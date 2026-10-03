@@ -8,6 +8,7 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
+import android.graphics.drawable.Icon
 import android.os.Build
 import android.os.IBinder
 import io.github.goroyattemiyo.wallpaperfitslideshow.MainActivity
@@ -116,9 +117,14 @@ class FastSlideshowService : Service() {
             .setOngoing(true)
             .setCategory(Notification.CATEGORY_SERVICE)
             .addAction(
-                android.R.drawable.ic_media_pause,
-                "停止",
-                stopIntent,
+                Notification.Action.Builder(
+                    Icon.createWithResource(
+                        this,
+                        android.R.drawable.ic_media_pause,
+                    ),
+                    "停止",
+                    stopIntent,
+                ).build(),
             )
 
         return builder.build()

@@ -123,9 +123,11 @@ class ImageEditorActivity : Activity() {
         }
     }
 
-    @Deprecated("Uses Activity back handling to avoid an additional Activity dependency.")
-    override fun onBackPressed() {
-        saveAndFinish(showToast = false)
+    override fun onStop() {
+        if (!suppressBackSave) {
+            saveLayout()
+        }
+        super.onStop()
     }
 
     override fun onDestroy() {
