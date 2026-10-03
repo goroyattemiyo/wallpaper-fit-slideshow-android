@@ -184,12 +184,17 @@ API / 端末が対応しない場合は、失敗を隠さずUIへ示す。
 - Androidホーム画面へコントロールWidgetを追加できる
 - 現在のHome壁紙ファイル名を表示する
 - 現在のHome画像だけをZoom - / Zoom + で約10%刻み調整する
-- Zoom 100%で現在のHome画像のuserScaleを1.0へ戻す
+- Zoom RESETで現在のHome画像のuserScaleを1.0へ戻す
+- Zoomは現在値と疑似スライダーバーを表示する
 - Home全体ぼかしをBlur - / Blur + で1段階ずつ調整する
+- Blurは現在値と疑似スライダーバーを表示する
+- 疑似スライダーは表示専用で、ドラッグ式SeekBarにはしない
 - Widget操作後は現在のHome壁紙へ即時再適用する
 - LockぼかしはWidgetから変更しない
 - Widgetの状態はスライドショー切替・編集保存・設定変更後に同期する
 - WidgetはRemoteViews対応Viewだけで構成し、ドラッグ式SeekBarには依存しない
+- Zoom / Blur の - / + / RESET は独立したButtonとしてクリック領域を持つ
+- Widget操作の設定値は壁紙再描画完了を待たず先にWidget表示へ反映する
 - 設定画面に「Widgetをホーム画面に追加」を置く
 - 対応ランチャーではrequestPinAppWidgetでシステムの追加確認を要求する
 - 非対応ランチャーではホーム画面長押しからの手動追加手順を案内する
