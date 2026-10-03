@@ -105,6 +105,9 @@ class ImageEditorActivity : Activity() {
         findViewById<Button>(R.id.background_button).setOnClickListener {
             showBackgroundSettingsDialog()
         }
+        findViewById<Button>(R.id.wallpaper_blur_button).setOnClickListener {
+            showWallpaperBlurDialog()
+        }
         findViewById<Button>(R.id.reset_button).setOnClickListener {
             preview.resetCurrentMode()
         }
@@ -263,6 +266,45 @@ class ImageEditorActivity : Activity() {
                 Toast.makeText(this, message, Toast.LENGTH_LONG).show()
             }
         }
+    }
+
+    private fun showWallpaperBlurDialog() {
+        val dialogView = layoutInflater.inflate(
+            R.layout.dialog_wallpaper_blur,
+            null,
+        )
+        val label = dialogView.findViewById<TextView>(
+            R.id.wallpaper_blur_label,
+        )
+        val seek = dialogView.findViewById<SeekBar>(
+            R.id.wallpaper_blur_seek,
+        )
+
+        seek.max = WallpaperLayoutState.MAX_WALLPAPER_BLUR_RADIUS
+        seek.progress = preview.layoutState.wallpaperBlurRadius
+
+        fun refreshLabel() {
+            val radius = preview.layoutState.wallpaperBlurRadius
+            label.text = if (radius == 0) {
+                "壁紙ぼかし: OFF"
+            } else {
+                "壁紙ぼかし: ${radius}"
+            }
+        }
+
+        seek.setOnSeekBarChangeListener(
+            SimpleSeekListener { progress ->
+                preview.setWallpaperBlurRadius(progress)
+                refreshLabel()
+            },
+        )
+        refreshLabel()
+
+        AlertDialog.Builder(this)
+            .setTitle("${targetLabel(editingTarget)}の壁紙ぼかし")
+            .setView(dialogView)
+            .setPositiveButton("閉じる", null)
+            .show()
     }
 
     private fun showBackgroundSettingsDialog() {

@@ -769,7 +769,10 @@ class MainActivity : Activity() {
             },
         )
         if (layout.backgroundMode == BackgroundMode.BLUR) {
-            append(" / ぼかし")
+            append(" / 背景ぼかし")
+        }
+        if (layout.wallpaperBlurRadius > 0) {
+            append(" / 壁紙ぼかし")
         }
     }
 
