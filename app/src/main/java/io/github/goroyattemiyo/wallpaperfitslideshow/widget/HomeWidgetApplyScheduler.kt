@@ -26,15 +26,21 @@ internal object HomeWidgetApplyScheduler {
     @Volatile
     private var pending: ScheduledFuture<*>? = null
 
+    @Volatile
+    private var generation: Long = 0L
+
     fun schedule(context: Context) {
         val appContext = context.applicationContext
         synchronized(lock) {
+            generation += 1
+            val scheduledGeneration = generation
             pending?.cancel(false)
             pending = executor.schedule(
                 {
                     applyLatest(
                         context = appContext,
                         busyRetriesRemaining = MAX_BUSY_RETRIES,
+                        scheduledGeneration = scheduledGeneration,
                     )
                 },
                 APPLY_DEBOUNCE_MILLIS,
@@ -46,7 +52,12 @@ internal object HomeWidgetApplyScheduler {
     private fun applyLatest(
         context: Context,
         busyRetriesRemaining: Int,
+        scheduledGeneration: Long,
     ) {
+        if (scheduledGeneration != generation) {
+            return
+        }
+
         val currentId = SettingsStore(context).load().currentHomeItemId ?: return
         val result = WallpaperOperationService(context).applyItem(
             currentId,
@@ -55,16 +66,22 @@ internal object HomeWidgetApplyScheduler {
         if (result == WallpaperOperationResult.Busy &&
             busyRetriesRemaining > 0
         ) {
-            executor.schedule(
-                {
-                    applyLatest(
-                        context = context,
-                        busyRetriesRemaining = busyRetriesRemaining - 1,
-                    )
-                },
-                BUSY_RETRY_MILLIS,
-                TimeUnit.MILLISECONDS,
-            )
+            synchronized(lock) {
+                if (scheduledGeneration != generation) {
+                    return
+                }
+                pending = executor.schedule(
+                    {
+                        applyLatest(
+                            context = context,
+                            busyRetriesRemaining = busyRetriesRemaining - 1,
+                            scheduledGeneration = scheduledGeneration,
+                        )
+                    },
+                    BUSY_RETRY_MILLIS,
+                    TimeUnit.MILLISECONDS,
+                )
+            }
         }
     }
 }
