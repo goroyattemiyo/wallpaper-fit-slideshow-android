@@ -101,7 +101,14 @@ class FastSlideshowService : Service() {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
 
-        val builder = Notification.Builder(this, CHANNEL_ID)
+        val builder = if (Build.VERSION.SDK_INT >= 26) {
+            Notification.Builder(this, CHANNEL_ID)
+        } else {
+            @Suppress("DEPRECATION")
+            Notification.Builder(this)
+        }
+
+        builder
             .setSmallIcon(android.R.drawable.ic_menu_gallery)
             .setContentTitle("高速壁紙スライドショー")
             .setContentText("${formatInterval(intervalSeconds)}ごとに壁紙を切り替えます")
@@ -109,11 +116,9 @@ class FastSlideshowService : Service() {
             .setOngoing(true)
             .setCategory(Notification.CATEGORY_SERVICE)
             .addAction(
-                Notification.Action.Builder(
-                    null,
-                    "停止",
-                    stopIntent,
-                ).build(),
+                android.R.drawable.ic_media_pause,
+                "停止",
+                stopIntent,
             )
 
         return builder.build()

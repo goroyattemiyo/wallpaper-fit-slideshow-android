@@ -74,8 +74,8 @@ V1の仕様・アーキテクチャを確定してからAndroid実装へ入る�
 ## Decisions
 
 - 静的WallpaperManager方式をV1採用
-- WorkManagerで15分以上の定期切替
-- 常時Foreground Serviceなし
+- 15分以上はWorkManager、15分未満はユーザー開始のForeground Service高速モード
+- 常時Foreground Serviceなし（15分未満の高速モード実行中のみForeground Service）
 - Live Wallpaperなし
 - networkなし
 - broad storage permissionなし
@@ -185,3 +185,16 @@ Still unverified:
 - folder import on device
 - ZIP import on device
 - preview vs actual wallpaper alignment on HyperOS
+
+
+## Latest UI / Interval Changes
+
+Implemented but current branch re-verification is pending:
+
+- compact slideshow settings UI
+- main screen summary: order / target / interval
+- interval choices from 10 seconds
+- 15 minutes or longer: WorkManager
+- below 15 minutes: user-started foreground fast mode
+- foreground service uses Android `specialUse` type
+- no exact-alarm permission

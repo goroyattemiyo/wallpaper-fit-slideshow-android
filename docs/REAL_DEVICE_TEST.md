@@ -315,13 +315,25 @@ Current safety limits:
 - up to 50 MiB per extracted image
 - up to 500 MiB total extraction
 
-## 19. Seconds Interval
+## 19. Seconds Interval / Fast Mode
 
-Not implemented for background slideshow in this build.
+With at least two slideshow-target images:
 
-Reason:
-- Periodic WorkManager has a 15-minute minimum
-- exact alarms are intended for genuinely time-critical user-facing actions
-- a seconds-level persistent implementation would require a materially heavier always-running design
+- [ ] Open the compact slideshow settings dialog
+- [ ] Select 10 seconds
+- [ ] Start slideshow
+- [ ] Ongoing fast-mode notification appears
+- [ ] Wallpaper changes repeatedly around the selected interval while service remains active
+- [ ] Stop button stops the changes and removes the foreground service notification
+- [ ] Change to 15 minutes or longer and confirm fast-mode notification disappears
+- [ ] Normal WorkManager mode remains available for 15 minutes or longer
 
-If seconds-level switching remains a product requirement, evaluate it as a separate explicit mode rather than silently weakening battery behavior.
+Timing is best-effort rather than an exact-alarm guarantee. Record actual behavior on HyperOS.
+
+## 20. Compact Settings UI
+
+- [ ] Main screen no longer shows three large setting spinners
+- [ ] Main screen shows one compact summary such as "順番 / ホーム / 30秒"
+- [ ] Settings button opens order / target / interval controls
+- [ ] Saved values appear in the compact summary
+

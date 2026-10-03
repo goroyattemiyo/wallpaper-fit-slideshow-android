@@ -120,7 +120,7 @@ Unit Test対象とする。
 
 ### SlideshowScheduler
 
-WorkManagerを隔離する。
+WorkManager / FastSlideshowServiceを隔離する。
 
 - unique work name固定
 - periodic work重複防止
@@ -156,7 +156,7 @@ V1は app-private JSON を `AtomicFile` で保存し、schemaVersionを持たせ
 AppSettings
 - schemaVersion
 - slideshowEnabled
-- intervalMinutes
+- intervalSeconds
 - orderMode
 - target
 - currentItemId
@@ -249,3 +249,21 @@ Redmi 12 5G / HyperOS
 - portrait / landscape / square
 - EXIF rotation
 - missing source
+
+
+## Fast Slideshow Mode
+
+Intervals below 15 minutes cannot use periodic WorkManager.
+For 10 seconds, 30 seconds, 1 minute and 5 minutes, the app uses a user-started foreground service.
+
+Rules:
+
+- starts only from a visible user action
+- visible ongoing notification
+- service type: `specialUse`
+- stops when slideshow is stopped
+- stops when interval changes to 15 minutes or longer
+- no exact alarm permission
+- no hidden permanent service
+- no automatic boot restart for fast mode
+- HyperOS behavior remains a real-device verification item
