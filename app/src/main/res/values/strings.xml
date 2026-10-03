@@ -3,4 +3,6 @@
     <string name="app_name">Wallpaper Fit Slideshow</string>
     <string name="app_goal">画像を壁紙に合わせて整え、軽量に自動切り替えます。</string>
     <string name="development_status">V1開発中: レイアウト計算エンジンを実装しています。</string>
+    <string name="lock_pinch_poc_label">Lock Pinch PoC</string>
+    <string name="lock_pinch_poc_description">実ロック画面でピンチ操作がLive Wallpaperへ届くか検証します。</string>
 </resources>

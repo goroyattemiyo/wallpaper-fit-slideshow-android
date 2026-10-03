@@ -12,6 +12,19 @@
         android:theme="@style/Theme.WallpaperFitSlideshow">
 
         <service
+            android:name=".poc.LockPinchWallpaperService"
+            android:exported="true"
+            android:label="@string/lock_pinch_poc_label"
+            android:permission="android.permission.BIND_WALLPAPER">
+            <intent-filter>
+                <action android:name="android.service.wallpaper.WallpaperService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.service.wallpaper"
+                android:resource="@xml/lock_pinch_wallpaper" />
+        </service>
+
+        <service
             android:name=".work.FastSlideshowService"
             android:exported="false"
             android:foregroundServiceType="specialUse">

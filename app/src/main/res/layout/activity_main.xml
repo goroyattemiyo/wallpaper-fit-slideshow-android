@@ -165,6 +165,12 @@
             android:text="設定" />
     </LinearLayout>
 
+    <Button
+        android:id="@+id/lock_pinch_poc_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="実験: ロック画面ピンチPoC" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

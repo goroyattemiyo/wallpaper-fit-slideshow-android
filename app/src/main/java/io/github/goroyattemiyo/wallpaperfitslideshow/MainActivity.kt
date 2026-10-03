@@ -1,6 +1,8 @@
 package io.github.goroyattemiyo.wallpaperfitslideshow
 
 import android.app.Activity
+import android.app.WallpaperManager
+import android.content.ComponentName
 import android.content.Intent
 import android.database.Cursor
 import android.net.Uri
@@ -24,6 +26,7 @@ import io.github.goroyattemiyo.wallpaperfitslideshow.model.AppSettings
 import io.github.goroyattemiyo.wallpaperfitslideshow.model.OrderMode
 import io.github.goroyattemiyo.wallpaperfitslideshow.model.WallpaperItem
 import io.github.goroyattemiyo.wallpaperfitslideshow.model.WallpaperTarget
+import io.github.goroyattemiyo.wallpaperfitslideshow.poc.LockPinchWallpaperService
 import io.github.goroyattemiyo.wallpaperfitslideshow.wallpaper.WallpaperOperationResult
 import io.github.goroyattemiyo.wallpaperfitslideshow.wallpaper.WallpaperOperationService
 import io.github.goroyattemiyo.wallpaperfitslideshow.work.SlideshowScheduler
@@ -133,6 +136,9 @@ class MainActivity : Activity() {
         findViewById<Button>(R.id.slideshow_settings_button).setOnClickListener {
             showSlideshowSettingsDialog()
         }
+        findViewById<Button>(R.id.lock_pinch_poc_button).setOnClickListener {
+            launchLockPinchPoc()
+        }
         startButton.setOnClickListener {
             startSlideshow()
         }
@@ -141,6 +147,39 @@ class MainActivity : Activity() {
         }
         nextButton.setOnClickListener {
             applyNextNow()
+        }
+    }
+
+    private fun launchLockPinchPoc() {
+        settings = settingsStore.load()
+        if (settings.slideshowEnabled) {
+            toast("PoC検証中に静的壁紙で上書きされるため、先にスライドショーを停止してください。")
+            return
+        }
+
+        val hasLockImage = settings.currentLockItemId != null ||
+            settings.items.any { it.lockEnabled }
+        if (!hasLockImage) {
+            toast("ロック対象の画像を1枚以上選んでください。")
+            return
+        }
+
+        val intent = Intent(WallpaperManager.ACTION_CHANGE_LIVE_WALLPAPER).apply {
+            putExtra(
+                WallpaperManager.EXTRA_LIVE_WALLPAPER_COMPONENT,
+                ComponentName(
+                    this@MainActivity,
+                    LockPinchWallpaperService::class.java,
+                ),
+            )
+        }
+
+        runCatching {
+            startActivity(intent)
+        }.onFailure {
+            startActivity(
+                Intent(WallpaperManager.ACTION_LIVE_WALLPAPER_CHOOSER),
+            )
         }
     }
 
