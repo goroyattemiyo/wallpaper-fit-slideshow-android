@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="60dp"
-    android:background="?android:attr/activatedBackgroundIndicator"
+    android:layout_height="64dp"
+    android:background="@drawable/item_row_background"
     android:gravity="center_vertical"
     android:orientation="horizontal"
     android:paddingLeft="6dp"
@@ -10,8 +10,10 @@
 
     <ImageView
         android:id="@+id/item_thumbnail"
-        android:layout_width="52dp"
-        android:layout_height="52dp"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="@drawable/thumbnail_background"
+        android:clipToOutline="true"
         android:contentDescription="画像プレビュー"
         android:scaleType="centerCrop" />
 
@@ -24,26 +26,33 @@
         android:layout_weight="1"
         android:ellipsize="end"
         android:maxLines="1"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
+        android:textColor="@color/text_primary"
+        android:textSize="14sp" />
 
     <CheckBox
         android:id="@+id/home_checkbox"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
+        android:buttonTint="@color/accent"
         android:focusable="false"
         android:focusableInTouchMode="false"
-        android:paddingLeft="2dp"
-        android:paddingRight="2dp"
-        android:text="ホーム" />
+        android:paddingLeft="1dp"
+        android:paddingRight="1dp"
+        android:text="ホーム"
+        android:textColor="@color/text_secondary"
+        android:textSize="12sp" />
 
     <CheckBox
         android:id="@+id/lock_checkbox"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
+        android:buttonTint="@color/accent"
         android:focusable="false"
         android:focusableInTouchMode="false"
-        android:paddingLeft="2dp"
-        android:paddingRight="2dp"
-        android:text="ロック" />
+        android:paddingLeft="1dp"
+        android:paddingRight="1dp"
+        android:text="ロック"
+        android:textColor="@color/text_secondary"
+        android:textSize="12sp" />
 
 </LinearLayout>

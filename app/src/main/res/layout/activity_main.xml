@@ -2,6 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/app_background"
     android:fitsSystemWindows="true"
     android:orientation="vertical"
     android:padding="12dp">
@@ -10,134 +11,208 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/app_name"
-        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textColor="@color/text_primary"
+        android:textSize="22sp"
         android:textStyle="bold" />
 
     <TextView
         android:id="@+id/status_text"
+        style="@style/Text.Helper"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:text="@string/development_status"
-        android:textAppearance="?android:attr/textAppearanceSmall" />
+        android:layout_marginTop="2dp"
+        android:text="@string/development_status" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:orientation="horizontal">
+        android:layout_marginTop="10dp"
+        android:background="@drawable/card_surface"
+        android:orientation="vertical"
+        android:padding="10dp">
 
-        <Button
-            android:id="@+id/add_images_button"
-            android:layout_width="0dp"
+        <TextView
+            style="@style/Text.SectionTitle"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="画像" />
+            android:text="画像を追加" />
 
-        <Button
-            android:id="@+id/add_folder_button"
-            android:layout_width="0dp"
+        <TextView
+            style="@style/Text.Helper"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="フォルダ" />
+            android:layout_marginTop="2dp"
+            android:text="画像・フォルダ・ZIPから追加できます" />
 
-        <Button
-            android:id="@+id/add_zip_button"
-            android:layout_width="0dp"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="ZIP" />
+            android:layout_marginTop="4dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/add_images_button"
+                style="@style/Button.Secondary"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:text="＋ 画像" />
+
+            <Button
+                android:id="@+id/add_folder_button"
+                style="@style/Button.Secondary"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="2dp"
+                android:layout_marginEnd="2dp"
+                android:layout_weight="1"
+                android:text="＋ フォルダ" />
+
+            <Button
+                android:id="@+id/add_zip_button"
+                style="@style/Button.Secondary"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:layout_weight="1"
+                android:text="＋ ZIP" />
+        </LinearLayout>
     </LinearLayout>
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="行タップで詳細 / ホーム・ロックを個別選択"
-        android:textAppearance="?android:attr/textAppearanceSmall" />
 
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <Button
-            android:id="@+id/select_all_button"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="全てH/L ON" />
-
-        <Button
-            android:id="@+id/clear_all_button"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="全てOFF" />
-    </LinearLayout>
-
-    <ListView
-        android:id="@+id/image_list"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="8dp"
         android:layout_weight="1"
-        android:choiceMode="singleChoice"
-        android:dividerHeight="1dp" />
+        android:background="@drawable/card_surface"
+        android:orientation="vertical"
+        android:padding="8dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    style="@style/Text.SectionTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="壁紙リスト" />
+
+                <TextView
+                    style="@style/Text.Helper"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="行タップで詳細 / Home・Lockを個別選択" />
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/select_all_button"
+                style="@style/Button.Secondary"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:minHeight="0dp"
+                android:minWidth="0dp"
+                android:text="全てON" />
+
+            <Button
+                android:id="@+id/clear_all_button"
+                style="@style/Button.Secondary"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:layout_marginStart="4dp"
+                android:minHeight="0dp"
+                android:minWidth="0dp"
+                android:text="全てOFF" />
+        </LinearLayout>
+
+        <ListView
+            android:id="@+id/image_list"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="4dp"
+            android:layout_weight="1"
+            android:choiceMode="singleChoice"
+            android:divider="@color/border"
+            android:dividerHeight="1dp"
+            android:listSelector="@android:color/transparent" />
+    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/detail_card"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:background="?android:attr/colorBackground"
-        android:elevation="8dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/card_accent_soft"
+        android:elevation="3dp"
         android:orientation="vertical"
-        android:padding="8dp"
+        android:padding="10dp"
         android:visibility="gone">
 
         <TextView
             android:id="@+id/detail_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:textColor="@color/text_primary"
+            android:textSize="14sp"
             android:textStyle="bold" />
 
         <TextView
             android:id="@+id/detail_state"
+            style="@style/Text.Helper"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:textAppearance="?android:attr/textAppearanceSmall" />
+            android:layout_marginTop="3dp" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
             android:orientation="horizontal">
 
             <Button
                 android:id="@+id/edit_image_button"
+                style="@style/Button.Primary"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="4dp"
                 android:layout_weight="2"
                 android:text="表示調整" />
 
             <Button
                 android:id="@+id/move_up_button"
+                style="@style/Button.Secondary"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="2dp"
+                android:layout_marginEnd="2dp"
                 android:layout_weight="1"
                 android:text="↑" />
 
             <Button
                 android:id="@+id/move_down_button"
+                style="@style/Button.Secondary"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="2dp"
+                android:layout_marginEnd="2dp"
                 android:layout_weight="1"
                 android:text="↓" />
 
             <Button
                 android:id="@+id/remove_image_button"
+                style="@style/Button.Danger"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
                 android:layout_weight="1"
                 android:text="削除" />
         </LinearLayout>
@@ -146,50 +221,80 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
+        android:layout_marginTop="8dp"
+        android:background="@drawable/card_surface"
+        android:orientation="vertical"
+        android:padding="10dp">
 
-        <TextView
-            android:id="@+id/slideshow_settings_summary"
-            android:layout_width="0dp"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="順番 / 1時間"
-            android:textAppearance="?android:attr/textAppearanceMedium" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-        <Button
-            android:id="@+id/slideshow_settings_button"
-            android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    style="@style/Text.SectionTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="スライドショー" />
+
+                <TextView
+                    android:id="@+id/slideshow_settings_summary"
+                    style="@style/Text.Helper"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="順番 / 1時間" />
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/slideshow_settings_button"
+                style="@style/Button.Secondary"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:minHeight="0dp"
+                android:text="⚙ 設定" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="設定" />
-    </LinearLayout>
+            android:layout_marginTop="4dp"
+            android:orientation="horizontal">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
+            <Button
+                android:id="@+id/start_button"
+                style="@style/Button.Primary"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1.3"
+                android:text="▶ 開始" />
 
-        <Button
-            android:id="@+id/start_button"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="開始" />
+            <Button
+                android:id="@+id/stop_button"
+                style="@style/Button.Secondary"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="2dp"
+                android:layout_marginEnd="2dp"
+                android:layout_weight="1"
+                android:text="■ 停止" />
 
-        <Button
-            android:id="@+id/stop_button"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="停止" />
-
-        <Button
-            android:id="@+id/next_button"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="次へ" />
+            <Button
+                android:id="@+id/next_button"
+                style="@style/Button.Secondary"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:layout_weight="1"
+                android:text="次へ ›" />
+        </LinearLayout>
     </LinearLayout>
 
 </LinearLayout>
