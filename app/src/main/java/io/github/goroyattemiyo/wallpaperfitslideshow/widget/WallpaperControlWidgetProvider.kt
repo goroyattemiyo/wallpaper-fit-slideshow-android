@@ -42,14 +42,16 @@ class WallpaperControlWidgetProvider : AppWidgetProvider() {
         }
 
         val pendingResult = goAsync()
-        EXECUTOR.execute {
+        CONTROL_EXECUTOR.execute {
             try {
-                HomeWidgetController(context).handle(
-                    action = intent.action.orEmpty(),
-                    onStateChanged = { updateAll(context) },
+                val changed = HomeWidgetController(context).handle(
+                    intent.action.orEmpty(),
                 )
-            } finally {
                 updateAll(context)
+                if (changed) {
+                    HomeWidgetApplyScheduler.schedule(context)
+                }
+            } finally {
                 pendingResult.finish()
             }
         }
@@ -75,7 +77,7 @@ class WallpaperControlWidgetProvider : AppWidgetProvider() {
             ACTION_BLUR_OUT,
         )
 
-        private val EXECUTOR = Executors.newSingleThreadExecutor()
+        private val CONTROL_EXECUTOR = Executors.newSingleThreadExecutor()
 
         fun updateAll(context: Context) {
             val appContext = context.applicationContext

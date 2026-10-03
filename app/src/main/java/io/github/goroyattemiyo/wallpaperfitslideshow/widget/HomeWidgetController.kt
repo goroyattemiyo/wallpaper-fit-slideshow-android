@@ -7,9 +7,7 @@ import io.github.goroyattemiyo.wallpaperfitslideshow.core.layout.LayoutRequest
 import io.github.goroyattemiyo.wallpaperfitslideshow.data.SettingsStore
 import io.github.goroyattemiyo.wallpaperfitslideshow.model.AppSettings
 import io.github.goroyattemiyo.wallpaperfitslideshow.model.WallpaperLayoutState
-import io.github.goroyattemiyo.wallpaperfitslideshow.model.WallpaperTarget
 import io.github.goroyattemiyo.wallpaperfitslideshow.wallpaper.SourceBitmapLoader
-import io.github.goroyattemiyo.wallpaperfitslideshow.wallpaper.WallpaperOperationService
 import io.github.goroyattemiyo.wallpaperfitslideshow.wallpaper.WallpaperTargetSizeResolver
 import kotlin.math.max
 
@@ -18,36 +16,33 @@ class HomeWidgetController(
 ) {
     private val appContext = context.applicationContext
     private val settingsStore = SettingsStore(appContext)
-    private val operationService = WallpaperOperationService(appContext)
     private val sourceLoader = SourceBitmapLoader(appContext)
     private val targetSizeResolver = WallpaperTargetSizeResolver(appContext)
 
-    fun handle(
-        action: String,
-        onStateChanged: () -> Unit = {},
-    ) {
+    fun handle(action: String): Boolean =
         when (action) {
             WallpaperControlWidgetProvider.ACTION_ZOOM_IN ->
-                adjustZoom(ZOOM_FACTOR, onStateChanged)
+                adjustZoom(ZOOM_FACTOR)
             WallpaperControlWidgetProvider.ACTION_ZOOM_OUT ->
-                adjustZoom(1.0 / ZOOM_FACTOR, onStateChanged)
+                adjustZoom(1.0 / ZOOM_FACTOR)
             WallpaperControlWidgetProvider.ACTION_ZOOM_RESET ->
-                resetZoom(onStateChanged)
+                resetZoom()
             WallpaperControlWidgetProvider.ACTION_BLUR_IN ->
-                adjustHomeBlur(1, onStateChanged)
+                adjustHomeBlur(1)
             WallpaperControlWidgetProvider.ACTION_BLUR_OUT ->
-                adjustHomeBlur(-1, onStateChanged)
+                adjustHomeBlur(-1)
+            else -> false
         }
-    }
 
-    private fun adjustZoom(
-        factor: Double,
-        onStateChanged: () -> Unit,
-    ) {
+    private fun adjustZoom(factor: Double): Boolean {
         val snapshot = settingsStore.load()
-        val currentId = snapshot.currentHomeItemId ?: return
-        val item = snapshot.items.firstOrNull { it.id == currentId } ?: return
-        val nextLayout = nextZoomLayout(item.homeLayout, item.uri, factor) ?: return
+        val currentId = snapshot.currentHomeItemId ?: return false
+        val item = snapshot.items.firstOrNull { it.id == currentId } ?: return false
+        val nextLayout = nextZoomLayout(item.homeLayout, item.uri, factor)
+            ?: return false
+        if (nextLayout == item.homeLayout) {
+            return false
+        }
 
         settingsStore.update { current ->
             current.copy(
@@ -60,15 +55,16 @@ class HomeWidgetController(
                 },
             )
         }
-        onStateChanged()
-        operationService.applyItem(currentId, WallpaperTarget.HOME)
+        return true
     }
 
-    private fun resetZoom(
-        onStateChanged: () -> Unit,
-    ) {
+    private fun resetZoom(): Boolean {
         val snapshot = settingsStore.load()
-        val currentId = snapshot.currentHomeItemId ?: return
+        val currentId = snapshot.currentHomeItemId ?: return false
+        val item = snapshot.items.firstOrNull { it.id == currentId } ?: return false
+        if (item.homeLayout.userScale == 1.0) {
+            return false
+        }
 
         settingsStore.update { current ->
             current.copy(
@@ -85,29 +81,31 @@ class HomeWidgetController(
                 },
             )
         }
-        onStateChanged()
-        operationService.applyItem(currentId, WallpaperTarget.HOME)
+        return true
     }
 
-    private fun adjustHomeBlur(
-        delta: Int,
-        onStateChanged: () -> Unit,
-    ) {
-        val updated = settingsStore.update { current ->
-            current.copy(
-                homeWallpaperBlurRadius = (
-                    current.homeWallpaperBlurRadius + delta
-                ).coerceIn(
-                    0,
-                    AppSettings.MAX_WALLPAPER_BLUR_RADIUS,
-                ),
-            )
+    private fun adjustHomeBlur(delta: Int): Boolean {
+        val snapshot = settingsStore.load()
+        if (snapshot.currentHomeItemId == null) {
+            return false
         }
 
-        onStateChanged()
-        updated.currentHomeItemId?.let { currentId ->
-            operationService.applyItem(currentId, WallpaperTarget.HOME)
+        val nextValue = (
+            snapshot.homeWallpaperBlurRadius + delta
+        ).coerceIn(
+            0,
+            AppSettings.MAX_WALLPAPER_BLUR_RADIUS,
+        )
+        if (nextValue == snapshot.homeWallpaperBlurRadius) {
+            return false
         }
+
+        settingsStore.update { current ->
+            current.copy(
+                homeWallpaperBlurRadius = nextValue,
+            )
+        }
+        return true
     }
 
     private fun nextZoomLayout(
