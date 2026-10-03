@@ -22,7 +22,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:layout_marginEnd="4dp"
+        android:layout_marginEnd="8dp"
         android:layout_weight="1"
         android:ellipsize="end"
         android:maxLines="1"
@@ -36,22 +36,9 @@
         android:buttonTint="@color/accent"
         android:focusable="false"
         android:focusableInTouchMode="false"
-        android:paddingLeft="1dp"
-        android:paddingRight="1dp"
-        android:text="ホーム"
-        android:textColor="@color/text_secondary"
-        android:textSize="12sp" />
-
-    <CheckBox
-        android:id="@+id/lock_checkbox"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:buttonTint="@color/accent"
-        android:focusable="false"
-        android:focusableInTouchMode="false"
-        android:paddingLeft="1dp"
-        android:paddingRight="1dp"
-        android:text="ロック"
+        android:paddingLeft="2dp"
+        android:paddingRight="2dp"
+        android:text="使用"
         android:textColor="@color/text_secondary"
         android:textSize="12sp" />
 

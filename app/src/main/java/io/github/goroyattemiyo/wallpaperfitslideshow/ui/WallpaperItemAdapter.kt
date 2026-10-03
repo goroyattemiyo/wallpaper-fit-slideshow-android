@@ -57,7 +57,6 @@ class WallpaperItemAdapter(
             thumbnail = view.findViewById(R.id.item_thumbnail),
             titleText = view.findViewById(R.id.item_title),
             homeCheckBox = view.findViewById(R.id.home_checkbox),
-            lockCheckBox = view.findViewById(R.id.lock_checkbox),
         ).also { view.tag = it }
 
         val item = getItem(position)
@@ -67,43 +66,26 @@ class WallpaperItemAdapter(
         holder.titleText.contentDescription = item.displayName
         thumbnailLoader.load(item.uri, holder.thumbnail)
 
-        bindTargetCheckBox(
-            checkBox = holder.homeCheckBox,
-            item = item,
-            target = WallpaperTarget.HOME,
-            checked = item.homeEnabled,
-        )
-        bindTargetCheckBox(
-            checkBox = holder.lockCheckBox,
-            item = item,
-            target = WallpaperTarget.LOCK,
-            checked = item.lockEnabled,
-        )
-
-        return view
-    }
-
-    private fun bindTargetCheckBox(
-        checkBox: CheckBox,
-        item: WallpaperItem,
-        target: WallpaperTarget,
-        checked: Boolean,
-    ) {
-        checkBox.setOnCheckedChangeListener(null)
-        checkBox.isChecked = checked
-        checkBox.contentDescription =
-            "${item.displayName}を${if (target == WallpaperTarget.HOME) "ホーム" else "ロック"}用にする"
-        checkBox.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked != checked) {
-                onTargetChanged(item.id, target, isChecked)
+        holder.homeCheckBox.setOnCheckedChangeListener(null)
+        holder.homeCheckBox.isChecked = item.homeEnabled
+        holder.homeCheckBox.contentDescription =
+            "${item.displayName}をスライドショー対象にする"
+        holder.homeCheckBox.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked != item.homeEnabled) {
+                onTargetChanged(
+                    item.id,
+                    WallpaperTarget.HOME,
+                    isChecked,
+                )
             }
         }
+
+        return view
     }
 
     private data class Holder(
         val thumbnail: ImageView,
         val titleText: TextView,
         val homeCheckBox: CheckBox,
-        val lockCheckBox: CheckBox,
     )
 }

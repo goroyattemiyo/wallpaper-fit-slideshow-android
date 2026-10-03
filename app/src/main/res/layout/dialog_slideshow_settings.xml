@@ -61,7 +61,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="ホーム画面ぼかし: OFF"
+            android:text="壁紙ぼかし: OFF"
             android:textColor="@color/text_primary" />
 
         <SeekBar
@@ -73,26 +73,10 @@
             android:thumbTint="@color/accent" />
 
         <TextView
-            android:id="@+id/dialog_lock_blur_label"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:text="ロック画面ぼかし: OFF"
-            android:textColor="@color/text_primary" />
-
-        <SeekBar
-            android:id="@+id/dialog_lock_blur_seek"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:max="30"
-            android:progressTint="@color/accent"
-            android:thumbTint="@color/accent" />
-
-        <TextView
             style="@style/AppTextHelper"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="ぼかしは画像ごとではなく、Home / Lockそれぞれの全体設定です。" />
+            android:text="ぼかしはホーム画面全体に適用します。" />
 
         <View
             android:layout_width="match_parent"
