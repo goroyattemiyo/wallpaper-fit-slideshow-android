@@ -24,9 +24,12 @@
 
 ## 3. V1 Functional Requirements
 
-### FR-01 Multiple Image Selection
+### FR-01 Image Sources
 
 - 複数画像を選択できる
+- SAFでフォルダを選び、その配下の画像を再帰的に追加できる
+- ZIPを選び、対応画像だけをアプリ内へ安全に展開して追加できる
+- ZIP展開は画像500枚、1画像50MB、合計500MBを上限とする
 - Android Storage Access Framework を使用する
 - 選択URIへの必要最小限の読み取り権限を保持する
 - 元画像をアプリ領域へ常時コピーしない
@@ -54,15 +57,23 @@
 - ユーザー指定背景色
 - 自動背景色はV1候補。実装負担が大きい場合はV1.1へ送る
 
-### FR-04 Crop Mode
-
-画面を埋めるように画像を表示する。
+### FR-04 Crop / Free Position Mode
 
 - アスペクト比維持
-- ピンチ操作で倍率変更
-- ドラッグで表示位置変更
-- 画像ごとに倍率・位置を保存
-- 空白領域が出ない範囲へ制約する
+- Crop基準から20%〜500%で縮小・拡大できる
+- ピンチまたは倍率スライダーで変更できる
+- ドラッグでX/Y位置を変更できる
+- 上下位置スライダーを持つ
+- 画像が画面より小さい場合は背景を表示する
+- 画像ごとに倍率・位置を保存する
+
+### FR-04B Background
+
+- 単色背景
+- 同じ画像をぼかした背景
+- ぼかし量を画像ごとに保存
+- ぼかし背景の透明度を画像ごとに保存
+- 背景色を画像ごとに保存
 
 ### FR-05 Per-image Layout State
 
@@ -75,6 +86,9 @@
 - normalized offset X
 - normalized offset Y
 - background color
+- background mode
+- blur radius
+- background image alpha
 - enabled / disabled
 - order
 
@@ -232,7 +246,10 @@ V1では行わない。
 - [ ] CONTAINで画像全体が欠けない
 - [ ] CONTAINで低解像度画像を自動アップスケールしない
 - [ ] 背景色で余白を埋められる
-- [ ] CROPでユーザーが倍率と位置を変更できる
+- [ ] CROPで縮小・拡大できる
+- [ ] 全体表示/CROPとも上下位置を変更できる
+- [ ] 単色/ぼかし背景を切替できる
+- [ ] ぼかし量と透明度を保存・復元できる
 - [ ] 画像ごとの調整値が復元される
 - [ ] Homeへ適用できる
 - [ ] Lockへ適用できる対応端末ではLockへ適用できる

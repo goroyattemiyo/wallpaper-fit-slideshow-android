@@ -84,7 +84,7 @@ V1の仕様・アーキテクチャを確定してからAndroid実装へ入る�
 - UIは標準Android Views
 - 設定保存はapp-private JSON + AtomicFile
 - Fit/Contain + background color と manual CropをV1の核とする
-- blur backgroundはV1 non-goal
+- blur backgroundは実機要望によりV1へ追加
 - Redmi 12 5G / HyperOSを初期実機基準にする
 
 ## Verification
@@ -126,10 +126,15 @@ Latest application code is tracked on branch head; exact commit updated with eac
 Implemented:
 
 - multi-image SAF picker + persisted read permission
+- folder import via ACTION_OPEN_DOCUMENT_TREE
+- ZIP image import with extraction limits
 - AtomicFile JSON settings
 - sequential/random selector
-- CONTAIN no-upscale
-- CROP zoom/pan
+- CONTAIN no-upscale + free position
+- CROP shrink/zoom/pan (20%〜500%)
+- vertical position slider
+- solid / blurred image background
+- blur radius / background transparency
 - background color
 - EXIF orientation handling
 - memory-bounded one-image decode

@@ -144,16 +144,16 @@ object BackgroundRenderer {
                 val x = offset.coerceIn(0, width - 1)
                 val color = source[y * width + x]
                 sumA += color ushr 24
-                sumR += color shr 16 and 0xFF
-                sumG += color shr 8 and 0xFF
+                sumR += (color shr 16) and 0xFF
+                sumG += (color shr 8) and 0xFF
                 sumB += color and 0xFF
             }
 
             for (x in 0 until width) {
                 output[y * width + x] =
-                    (sumA / window shl 24) or
-                        (sumR / window shl 16) or
-                        (sumG / window shl 8) or
+                    ((sumA / window) shl 24) or
+                        ((sumR / window) shl 16) or
+                        ((sumG / window) shl 8) or
                         (sumB / window)
 
                 val removeX = (x - radius).coerceIn(0, width - 1)
@@ -162,8 +162,8 @@ object BackgroundRenderer {
                 val add = source[y * width + addX]
 
                 sumA += (add ushr 24) - (remove ushr 24)
-                sumR += (add shr 16 and 0xFF) - (remove shr 16 and 0xFF)
-                sumG += (add shr 8 and 0xFF) - (remove shr 8 and 0xFF)
+                sumR += ((add shr 16) and 0xFF) - ((remove shr 16) and 0xFF)
+                sumG += ((add shr 8) and 0xFF) - ((remove shr 8) and 0xFF)
                 sumB += (add and 0xFF) - (remove and 0xFF)
             }
         }
@@ -188,16 +188,16 @@ object BackgroundRenderer {
                 val y = offset.coerceIn(0, height - 1)
                 val color = source[y * width + x]
                 sumA += color ushr 24
-                sumR += color shr 16 and 0xFF
-                sumG += color shr 8 and 0xFF
+                sumR += (color shr 16) and 0xFF
+                sumG += (color shr 8) and 0xFF
                 sumB += color and 0xFF
             }
 
             for (y in 0 until height) {
                 output[y * width + x] =
-                    (sumA / window shl 24) or
-                        (sumR / window shl 16) or
-                        (sumG / window shl 8) or
+                    ((sumA / window) shl 24) or
+                        ((sumR / window) shl 16) or
+                        ((sumG / window) shl 8) or
                         (sumB / window)
 
                 val removeY = (y - radius).coerceIn(0, height - 1)
@@ -206,8 +206,8 @@ object BackgroundRenderer {
                 val add = source[addY * width + x]
 
                 sumA += (add ushr 24) - (remove ushr 24)
-                sumR += (add shr 16 and 0xFF) - (remove shr 16 and 0xFF)
-                sumG += (add shr 8 and 0xFF) - (remove shr 8 and 0xFF)
+                sumR += ((add shr 16) and 0xFF) - ((remove shr 16) and 0xFF)
+                sumG += ((add shr 8) and 0xFF) - ((remove shr 8) and 0xFF)
                 sumB += (add and 0xFF) - (remove and 0xFF)
             }
         }

@@ -190,6 +190,10 @@ class ImageEditorActivity : Activity() {
     ) {
         bindingEditorControls = true
         try {
+            zoomSeekBar.isEnabled = state.mode == LayoutMode.CROP
+            blurSeekBar.isEnabled = state.backgroundMode == BackgroundMode.BLUR
+            transparencySeekBar.isEnabled = state.backgroundMode == BackgroundMode.BLUR
+
             zoomSeekBar.progress = (
                 (state.userScale - ZOOM_MIN) * 100.0
             ).toInt().coerceIn(0, ZOOM_PROGRESS_MAX)
