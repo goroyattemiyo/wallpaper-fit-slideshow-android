@@ -27,10 +27,12 @@ data class WallpaperLayoutState(
     val backgroundMode: BackgroundMode = BackgroundMode.SOLID,
     val blurRadius: Int = DEFAULT_BLUR_RADIUS,
     val backgroundImageAlpha: Int = 255,
+    val wallpaperBlurRadius: Int = 0,
 ) {
     companion object {
         const val DEFAULT_BLUR_RADIUS = 12
         const val MAX_BLUR_RADIUS = 30
+        const val MAX_WALLPAPER_BLUR_RADIUS = 30
     }
 }
 
@@ -78,7 +80,7 @@ data class AppSettings(
         }
 
     companion object {
-        const val CURRENT_SCHEMA_VERSION = 4
+        const val CURRENT_SCHEMA_VERSION = 5
         const val DEFAULT_INTERVAL_SECONDS = 3600L
         const val MIN_INTERVAL_SECONDS = 10L
         const val WORK_MANAGER_MIN_INTERVAL_SECONDS = 15L * 60L

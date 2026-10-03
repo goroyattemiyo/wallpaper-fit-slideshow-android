@@ -94,6 +94,7 @@ class SettingsStore(context: Context) {
             .put("backgroundMode", layout.backgroundMode.name)
             .put("blurRadius", layout.blurRadius)
             .put("backgroundImageAlpha", layout.backgroundImageAlpha)
+            .put("wallpaperBlurRadius", layout.wallpaperBlurRadius)
 
     private fun decode(root: JSONObject): AppSettings {
         val schemaVersion = root.optInt("schemaVersion", 1)
@@ -231,6 +232,9 @@ class SettingsStore(context: Context) {
             backgroundImageAlpha = layoutJson
                 .optInt("backgroundImageAlpha", 255)
                 .coerceIn(0, 255),
+            wallpaperBlurRadius = layoutJson
+                .optInt("wallpaperBlurRadius", 0)
+                .coerceIn(0, WallpaperLayoutState.MAX_WALLPAPER_BLUR_RADIUS),
         )
 
     private inline fun <reified T : Enum<T>> enumOrDefault(
