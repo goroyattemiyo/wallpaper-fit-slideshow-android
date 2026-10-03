@@ -510,3 +510,19 @@ Current fix to verify:
 - controls changed back to RemoteViews Button
 - each control PendingIntent now has a unique action + requestCode + data URI
 - widget text/bar state updates immediately after settings mutation, before wallpaper re-render completes
+
+
+## 28. Home-only V1 regression
+
+The latest V1 scope is Home-only. Older Lock-specific checks above are retained only as historical records and are no longer V1 acceptance requirements.
+
+- [ ] Main list has no Lock checkbox
+- [ ] Settings has no Lock blur control
+- [ ] Editor has no Home/Lock target selector
+- [ ] Start requires 2+ Home-selected images
+- [ ] Next changes Home wallpaper only
+- [ ] Automatic slideshow changes Home wallpaper only
+- [ ] Editor apply changes Home wallpaper only
+- [ ] Existing app data survives upgrade without crash
+- [ ] Existing legacy Lock values do not affect visible V1 behavior
+- [ ] Widget still controls current Home wallpaper
