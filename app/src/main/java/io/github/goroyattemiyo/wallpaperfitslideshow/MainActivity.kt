@@ -10,6 +10,7 @@ import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.ListView
+import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
 import io.github.goroyattemiyo.wallpaperfitslideshow.data.FolderImageScanner
@@ -153,6 +154,18 @@ class MainActivity : Activity() {
         val intervalSpinner = dialogView.findViewById<android.widget.Spinner>(
             R.id.dialog_interval_spinner,
         )
+        val homeBlurLabel = dialogView.findViewById<TextView>(
+            R.id.dialog_home_blur_label,
+        )
+        val homeBlurSeek = dialogView.findViewById<SeekBar>(
+            R.id.dialog_home_blur_seek,
+        )
+        val lockBlurLabel = dialogView.findViewById<TextView>(
+            R.id.dialog_lock_blur_label,
+        )
+        val lockBlurSeek = dialogView.findViewById<SeekBar>(
+            R.id.dialog_lock_blur_seek,
+        )
 
         orderSpinner.adapter = simpleSpinnerAdapter(
             listOf("順番", "ランダム"),
@@ -168,6 +181,19 @@ class MainActivity : Activity() {
             INTERVALS.indexOfFirst {
                 it.seconds == settings.intervalSeconds
             }.takeIf { it >= 0 } ?: DEFAULT_INTERVAL_INDEX,
+        )
+
+        bindBlurSeekBar(
+            seekBar = homeBlurSeek,
+            label = homeBlurLabel,
+            prefix = "ホーム画面ぼかし",
+            initialValue = settings.homeWallpaperBlurRadius,
+        )
+        bindBlurSeekBar(
+            seekBar = lockBlurSeek,
+            label = lockBlurLabel,
+            prefix = "ロック画面ぼかし",
+            initialValue = settings.lockWallpaperBlurRadius,
         )
 
         android.app.AlertDialog.Builder(this)
@@ -189,6 +215,8 @@ class MainActivity : Activity() {
                     it.copy(
                         orderMode = orderMode,
                         intervalSeconds = intervalSeconds,
+                        homeWallpaperBlurRadius = homeBlurSeek.progress,
+                        lockWallpaperBlurRadius = lockBlurSeek.progress,
                     )
                 }
 
@@ -196,9 +224,69 @@ class MainActivity : Activity() {
                     scheduler.schedule(intervalSeconds)
                 }
                 refreshUi()
+                reapplyCurrentWallpapers()
             }
             .setNegativeButton("キャンセル", null)
             .show()
+    }
+
+    private fun bindBlurSeekBar(
+        seekBar: SeekBar,
+        label: TextView,
+        prefix: String,
+        initialValue: Int,
+    ) {
+        seekBar.max = AppSettings.MAX_WALLPAPER_BLUR_RADIUS
+        seekBar.progress = initialValue.coerceIn(
+            0,
+            AppSettings.MAX_WALLPAPER_BLUR_RADIUS,
+        )
+
+        fun updateLabel(value: Int) {
+            label.text = if (value == 0) {
+                "$prefix: OFF"
+            } else {
+                "$prefix: $value"
+            }
+        }
+
+        seekBar.setOnSeekBarChangeListener(
+            object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(
+                    seekBar: SeekBar?,
+                    progress: Int,
+                    fromUser: Boolean,
+                ) {
+                    updateLabel(progress)
+                }
+
+                override fun onStartTrackingTouch(seekBar: SeekBar?) = Unit
+                override fun onStopTrackingTouch(seekBar: SeekBar?) = Unit
+            },
+        )
+        updateLabel(seekBar.progress)
+    }
+
+    private fun reapplyCurrentWallpapers() {
+        val snapshot = settingsStore.load()
+        val targets = buildList {
+            snapshot.currentHomeItemId?.let { add(it to WallpaperTarget.HOME) }
+            snapshot.currentLockItemId?.let { add(it to WallpaperTarget.LOCK) }
+        }
+        if (targets.isEmpty()) {
+            return
+        }
+
+        executor.execute {
+            targets.forEach { (itemId, target) ->
+                operationService.applyItem(itemId, target)
+            }
+            runOnUiThread {
+                if (!isDestroyed) {
+                    refreshUi()
+                }
+            }
+        }
     }
 
     private fun simpleSpinnerAdapter(
@@ -675,6 +763,10 @@ class MainActivity : Activity() {
             append(orderLabel(settings.orderMode))
             append(" / ")
             append(formatInterval(settings.intervalSeconds))
+            append(" / ぼかし H")
+            append(settings.homeWallpaperBlurRadius)
+            append(" L")
+            append(settings.lockWallpaperBlurRadius)
             if (settings.intervalSeconds < AppSettings.WORK_MANAGER_MIN_INTERVAL_SECONDS) {
                 append("（高速）")
             }
@@ -770,9 +862,6 @@ class MainActivity : Activity() {
         )
         if (layout.backgroundMode == BackgroundMode.BLUR) {
             append(" / 背景ぼかし")
-        }
-        if (layout.wallpaperBlurRadius > 0) {
-            append(" / 壁紙ぼかし")
         }
     }
 
