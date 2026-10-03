@@ -164,12 +164,6 @@ class MainActivity : Activity() {
         val homeBlurSeek = dialogView.findViewById<SeekBar>(
             R.id.dialog_home_blur_seek,
         )
-        val lockBlurLabel = dialogView.findViewById<TextView>(
-            R.id.dialog_lock_blur_label,
-        )
-        val lockBlurSeek = dialogView.findViewById<SeekBar>(
-            R.id.dialog_lock_blur_seek,
-        )
         val widgetPinStatus = dialogView.findViewById<TextView>(
             R.id.widget_pin_status,
         )
@@ -196,14 +190,8 @@ class MainActivity : Activity() {
         bindBlurSeekBar(
             seekBar = homeBlurSeek,
             label = homeBlurLabel,
-            prefix = "ホーム画面ぼかし",
+            prefix = "壁紙ぼかし",
             initialValue = settings.homeWallpaperBlurRadius,
-        )
-        bindBlurSeekBar(
-            seekBar = lockBlurSeek,
-            label = lockBlurLabel,
-            prefix = "ロック画面ぼかし",
-            initialValue = settings.lockWallpaperBlurRadius,
         )
         configureWidgetPinUi(
             status = widgetPinStatus,
@@ -230,7 +218,6 @@ class MainActivity : Activity() {
                         orderMode = orderMode,
                         intervalSeconds = intervalSeconds,
                         homeWallpaperBlurRadius = homeBlurSeek.progress,
-                        lockWallpaperBlurRadius = lockBlurSeek.progress,
                     )
                 }
 
@@ -359,19 +346,9 @@ class MainActivity : Activity() {
     }
 
     private fun reapplyCurrentWallpapers() {
-        val snapshot = settingsStore.load()
-        val targets = buildList {
-            snapshot.currentHomeItemId?.let { add(it to WallpaperTarget.HOME) }
-            snapshot.currentLockItemId?.let { add(it to WallpaperTarget.LOCK) }
-        }
-        if (targets.isEmpty()) {
-            return
-        }
-
+        val currentId = settingsStore.load().currentHomeItemId ?: return
         executor.execute {
-            targets.forEach { (itemId, target) ->
-                operationService.applyItem(itemId, target)
-            }
+            operationService.applyItem(currentId, WallpaperTarget.HOME)
             runOnUiThread {
                 if (!isDestroyed) {
                     refreshUi()
@@ -646,20 +623,19 @@ class MainActivity : Activity() {
         target: WallpaperTarget,
         enabled: Boolean,
     ) {
+        if (target != WallpaperTarget.HOME) {
+            return
+        }
+
         settings = settingsStore.update { current ->
             val updatedItems = current.items.map { item ->
-                if (item.id != itemId) {
-                    item
+                if (item.id == itemId) {
+                    item.copy(homeEnabled = enabled)
                 } else {
-                    when (target) {
-                        WallpaperTarget.HOME -> item.copy(homeEnabled = enabled)
-                        WallpaperTarget.LOCK -> item.copy(lockEnabled = enabled)
-                        WallpaperTarget.BOTH -> item
-                    }
+                    item
                 }
             }
-            val canRun = updatedItems.count { it.homeEnabled } >= 2 ||
-                updatedItems.count { it.lockEnabled } >= 2
+            val canRun = updatedItems.count { it.homeEnabled } >= 2
             current.copy(
                 items = updatedItems,
                 slideshowEnabled = current.slideshowEnabled && canRun,
@@ -675,10 +651,7 @@ class MainActivity : Activity() {
     private fun setAllItemsEnabled(enabled: Boolean) {
         settings = settingsStore.update { current ->
             val updatedItems = current.items.map {
-                it.copy(
-                    homeEnabled = enabled,
-                    lockEnabled = enabled,
-                )
+                it.copy(homeEnabled = enabled)
             }
             current.copy(
                 items = updatedItems,
@@ -797,9 +770,8 @@ class MainActivity : Activity() {
     private fun startSlideshow() {
         settings = settingsStore.load()
         val homeCount = settings.items.count { it.homeEnabled }
-        val lockCount = settings.items.count { it.lockEnabled }
-        if (homeCount < 2 && lockCount < 2) {
-            toast("ホームまたはロックに2枚以上チェックしてください。")
+        if (homeCount < 2) {
+            toast("使用する画像を2枚以上チェックしてください。")
             return
         }
 
@@ -854,10 +826,8 @@ class MainActivity : Activity() {
             append(orderLabel(settings.orderMode))
             append(" / ")
             append(formatInterval(settings.intervalSeconds))
-            append(" / ぼかし H")
+            append(" / ぼかし ")
             append(settings.homeWallpaperBlurRadius)
-            append(" L")
-            append(settings.lockWallpaperBlurRadius)
             if (settings.intervalSeconds < AppSettings.WORK_MANAGER_MIN_INTERVAL_SECONDS) {
                 append("（高速）")
             }
@@ -876,8 +846,7 @@ class MainActivity : Activity() {
         }
 
         val homeCount = settings.items.count { it.homeEnabled }
-        val lockCount = settings.items.count { it.lockEnabled }
-        startButton.text = "開始（H${homeCount}/L${lockCount}）"
+        startButton.text = "開始（" + homeCount + "枚）"
         nextButton.text = "次へ"
         updateDetailCard()
 
@@ -893,10 +862,8 @@ class MainActivity : Activity() {
                     "自動切替: OFF"
                 },
             )
-            append(" / H ")
+            append(" / 使用 ")
             append(homeCount)
-            append(" / L ")
-            append(lockCount)
             append(" / 全")
             append(settings.items.size)
             append("枚")
@@ -925,18 +892,10 @@ class MainActivity : Activity() {
         detailCard.visibility = View.VISIBLE
         detailTitle.text = item.displayName
         detailState.text = buildString {
-            append("ホーム: ")
-            append(if (item.homeEnabled) "ON" else "OFF")
+            append(if (item.homeEnabled) "使用中" else "未使用")
             append(" / ")
             append(layoutLabel(item.homeLayout))
             if (item.id == settings.currentHomeItemId) {
-                append(" / 現在")
-            }
-            append("\nロック: ")
-            append(if (item.lockEnabled) "ON" else "OFF")
-            append(" / ")
-            append(layoutLabel(item.lockLayout))
-            if (item.id == settings.currentLockItemId) {
                 append(" / 現在")
             }
         }
