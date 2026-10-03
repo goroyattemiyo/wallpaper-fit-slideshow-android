@@ -172,14 +172,25 @@ class WallpaperPreviewView @JvmOverloads constructor(
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val measuredWidth = MeasureSpec.getSize(widthMeasureSpec).coerceAtLeast(1)
-        val desiredHeight = (
-            measuredWidth.toDouble() * targetHeight.toDouble() / targetWidth.toDouble()
-        ).roundToInt().coerceAtLeast(1)
+        val maxWidth = MeasureSpec.getSize(widthMeasureSpec).coerceAtLeast(1)
+        val maxHeight = MeasureSpec.getSize(heightMeasureSpec).coerceAtLeast(1)
+        val aspect = targetWidth.toDouble() / targetHeight.toDouble()
+
+        var measuredWidth = maxWidth
+        var measuredHeight = (measuredWidth / aspect)
+            .roundToInt()
+            .coerceAtLeast(1)
+
+        if (measuredHeight > maxHeight) {
+            measuredHeight = maxHeight
+            measuredWidth = (measuredHeight * aspect)
+                .roundToInt()
+                .coerceAtLeast(1)
+        }
 
         setMeasuredDimension(
-            resolveSize(measuredWidth, widthMeasureSpec),
-            resolveSize(desiredHeight, heightMeasureSpec),
+            measuredWidth.coerceAtMost(maxWidth),
+            measuredHeight.coerceAtMost(maxHeight),
         )
     }
 
