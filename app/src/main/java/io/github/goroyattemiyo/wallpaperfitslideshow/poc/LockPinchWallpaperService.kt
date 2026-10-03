@@ -322,8 +322,9 @@ class LockPinchWallpaperService : WallpaperService() {
             )
         }
 
-        companion object {
-            private const val MAX_POC_DECODE_PIXELS = 4_000_000L
-        }
+    }
+
+    companion object {
+        private const val MAX_POC_DECODE_PIXELS = 4_000_000L
     }
 }
