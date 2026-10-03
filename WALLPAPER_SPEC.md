@@ -1,5 +1,20 @@
 # Wallpaper Fit Slideshow - V1 Specification
 
+## 0. V1 Scope Override - Home only
+
+2026-10-04の最新要求により、V1はホーム画面壁紙専用とする。
+
+- ロック画面用画像・ロック画面スライドショーはV1対象外
+- 一覧のLock選択UIは表示しない
+- 編集画面のHome / Lock切替は表示しない
+- 設定画面のLock全体ぼかしは表示しない
+- 自動切替 / Next now はHomeだけを変更する
+- WidgetはHomeだけを操作する
+- 既存の lockEnabled / lockLayout / currentLockItemId / lockWallpaperBlurRadius は保存互換のため当面残す
+- 上記legacy Lock値はV1の通常UI・スライドショー実行経路では使用しない
+- 旧記述でHome / Lock両対応を求める箇所は、この節が優先して無効化する
+
+
 ## 1. Product Goal
 
 どんなサイズ・縦横比の画像でも、不要な見切れや粗い強制拡大を避けながら壁紙向けに整え、
