@@ -6,12 +6,9 @@ import android.database.Cursor
 import android.net.Uri
 import android.os.Bundle
 import android.provider.OpenableColumns
-import android.view.View
-import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.ListView
-import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import io.github.goroyattemiyo.wallpaperfitslideshow.data.FolderImageScanner
@@ -36,9 +33,7 @@ class MainActivity : Activity() {
     private lateinit var operationService: WallpaperOperationService
     private lateinit var imageList: ListView
     private lateinit var statusText: TextView
-    private lateinit var orderSpinner: Spinner
-    private lateinit var targetSpinner: Spinner
-    private lateinit var intervalSpinner: Spinner
+    private lateinit var settingsSummaryText: TextView
     private lateinit var itemAdapter: WallpaperItemAdapter
     private lateinit var startButton: Button
     private lateinit var nextButton: Button
@@ -46,7 +41,6 @@ class MainActivity : Activity() {
     private val executor: ExecutorService = Executors.newSingleThreadExecutor()
     private var settings: AppSettings = AppSettings()
     private var selectedItemId: String? = null
-    private var bindingControls = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,9 +52,7 @@ class MainActivity : Activity() {
 
         imageList = findViewById(R.id.image_list)
         statusText = findViewById(R.id.status_text)
-        orderSpinner = findViewById(R.id.order_spinner)
-        targetSpinner = findViewById(R.id.target_spinner)
-        intervalSpinner = findViewById(R.id.interval_spinner)
+        settingsSummaryText = findViewById(R.id.slideshow_settings_summary)
         startButton = findViewById(R.id.start_button)
         nextButton = findViewById(R.id.next_button)
         itemAdapter = WallpaperItemAdapter(
@@ -69,7 +61,6 @@ class MainActivity : Activity() {
         )
         imageList.adapter = itemAdapter
 
-        configureSpinners()
         configureButtons()
         configureList()
         refreshUi()
@@ -129,6 +120,9 @@ class MainActivity : Activity() {
         findViewById<Button>(R.id.clear_all_button).setOnClickListener {
             setAllItemsEnabled(false)
         }
+        findViewById<Button>(R.id.slideshow_settings_button).setOnClickListener {
+            showSlideshowSettingsDialog()
+        }
         startButton.setOnClickListener {
             startSlideshow()
         }
@@ -140,7 +134,21 @@ class MainActivity : Activity() {
         }
     }
 
-    private fun configureSpinners() {
+    private fun showSlideshowSettingsDialog() {
+        val dialogView = layoutInflater.inflate(
+            R.layout.dialog_slideshow_settings,
+            null,
+        )
+        val orderSpinner = dialogView.findViewById<android.widget.Spinner>(
+            R.id.dialog_order_spinner,
+        )
+        val targetSpinner = dialogView.findViewById<android.widget.Spinner>(
+            R.id.dialog_target_spinner,
+        )
+        val intervalSpinner = dialogView.findViewById<android.widget.Spinner>(
+            R.id.dialog_interval_spinner,
+        )
+
         orderSpinner.adapter = simpleSpinnerAdapter(
             listOf("順番", "ランダム"),
         )
@@ -151,47 +159,70 @@ class MainActivity : Activity() {
             INTERVALS.map { it.label },
         )
 
-        orderSpinner.onItemSelectedListener = object : SimpleItemSelectedListener() {
-            override fun onSelected(position: Int) {
-                if (bindingControls) return
-                val value = if (position == 1) OrderMode.RANDOM else OrderMode.SEQUENTIAL
-                settings = settingsStore.update { it.copy(orderMode = value) }
-            }
-        }
+        orderSpinner.setSelection(
+            if (settings.orderMode == OrderMode.RANDOM) 1 else 0,
+        )
+        targetSpinner.setSelection(
+            when (settings.target) {
+                WallpaperTarget.HOME -> 0
+                WallpaperTarget.LOCK -> 1
+                WallpaperTarget.BOTH -> 2
+            },
+        )
+        intervalSpinner.setSelection(
+            INTERVALS.indexOfFirst {
+                it.seconds == settings.intervalSeconds
+            }.takeIf { it >= 0 } ?: DEFAULT_INTERVAL_INDEX,
+        )
 
-        targetSpinner.onItemSelectedListener = object : SimpleItemSelectedListener() {
-            override fun onSelected(position: Int) {
-                if (bindingControls) return
-                val value = when (position) {
+        android.app.AlertDialog.Builder(this)
+            .setTitle("スライドショー設定")
+            .setView(dialogView)
+            .setPositiveButton("保存") { _, _ ->
+                val orderMode = if (orderSpinner.selectedItemPosition == 1) {
+                    OrderMode.RANDOM
+                } else {
+                    OrderMode.SEQUENTIAL
+                }
+                val target = when (targetSpinner.selectedItemPosition) {
                     0 -> WallpaperTarget.HOME
                     1 -> WallpaperTarget.LOCK
                     else -> WallpaperTarget.BOTH
                 }
-                settings = settingsStore.update { it.copy(target = value) }
-            }
-        }
+                val intervalSeconds = INTERVALS
+                    .getOrElse(intervalSpinner.selectedItemPosition) {
+                        INTERVALS[DEFAULT_INTERVAL_INDEX]
+                    }
+                    .seconds
 
-        intervalSpinner.onItemSelectedListener = object : SimpleItemSelectedListener() {
-            override fun onSelected(position: Int) {
-                if (bindingControls) return
-                val interval = INTERVALS.getOrElse(position) { INTERVALS[2] }.minutes
                 settings = settingsStore.update {
-                    it.copy(intervalMinutes = interval)
+                    it.copy(
+                        orderMode = orderMode,
+                        target = target,
+                        intervalSeconds = intervalSeconds,
+                    )
                 }
+
                 if (settings.slideshowEnabled) {
-                    scheduler.schedule(interval)
+                    scheduler.schedule(intervalSeconds)
                 }
+                refreshUi()
             }
-        }
+            .setNegativeButton("キャンセル", null)
+            .show()
     }
 
-    private fun simpleSpinnerAdapter(values: List<String>): ArrayAdapter<String> =
+    private fun simpleSpinnerAdapter(
+        values: List<String>,
+    ): ArrayAdapter<String> =
         ArrayAdapter(
             this,
             android.R.layout.simple_spinner_item,
             values,
         ).also {
-            it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            it.setDropDownViewResource(
+                android.R.layout.simple_spinner_dropdown_item,
+            )
         }
 
     @Suppress("DEPRECATION")
@@ -593,7 +624,7 @@ class MainActivity : Activity() {
         settings = settingsStore.update {
             it.copy(slideshowEnabled = true, lastError = null)
         }
-        scheduler.schedule(settings.intervalMinutes)
+        scheduler.schedule(settings.intervalSeconds)
         refreshUi()
         applyNextNow()
     }
@@ -628,28 +659,15 @@ class MainActivity : Activity() {
 
     private fun refreshUi() {
         settings = settingsStore.load()
-        bindingControls = true
-        try {
-            orderSpinner.setSelection(
-                if (settings.orderMode == OrderMode.RANDOM) 1 else 0,
-                false,
-            )
-            targetSpinner.setSelection(
-                when (settings.target) {
-                    WallpaperTarget.HOME -> 0
-                    WallpaperTarget.LOCK -> 1
-                    WallpaperTarget.BOTH -> 2
-                },
-                false,
-            )
-            intervalSpinner.setSelection(
-                INTERVALS.indexOfFirst { it.minutes == settings.intervalMinutes }
-                    .takeIf { it >= 0 }
-                    ?: 2,
-                false,
-            )
-        } finally {
-            bindingControls = false
+        settingsSummaryText.text = buildString {
+            append(orderLabel(settings.orderMode))
+            append(" / ")
+            append(targetLabel(settings.target))
+            append(" / ")
+            append(formatInterval(settings.intervalSeconds))
+            if (settings.intervalSeconds < AppSettings.WORK_MANAGER_MIN_INTERVAL_SECONDS) {
+                append("（高速）")
+            }
         }
 
         itemAdapter.update(
@@ -670,7 +688,17 @@ class MainActivity : Activity() {
         nextButton.text = "次へ（対象のみ）"
 
         statusText.text = buildString {
-            append(if (settings.slideshowEnabled) "自動切替: ON" else "自動切替: OFF")
+            append(
+                if (settings.slideshowEnabled) {
+                    if (settings.intervalSeconds < AppSettings.WORK_MANAGER_MIN_INTERVAL_SECONDS) {
+                        "自動切替: ON（高速モード）"
+                    } else {
+                        "自動切替: ON"
+                    }
+                } else {
+                    "自動切替: OFF"
+                },
+            )
             append(" / 対象 ")
             append(enabledCount)
             append(" / ")
@@ -687,23 +715,26 @@ class MainActivity : Activity() {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 
-    private abstract class SimpleItemSelectedListener : AdapterView.OnItemSelectedListener {
-        final override fun onItemSelected(
-            parent: AdapterView<*>?,
-            view: View?,
-            position: Int,
-            id: Long,
-        ) {
-            onSelected(position)
+    private fun orderLabel(mode: OrderMode): String =
+        if (mode == OrderMode.RANDOM) "ランダム" else "順番"
+
+    private fun targetLabel(target: WallpaperTarget): String =
+        when (target) {
+            WallpaperTarget.HOME -> "ホーム"
+            WallpaperTarget.LOCK -> "ロック"
+            WallpaperTarget.BOTH -> "両方"
         }
 
-        final override fun onNothingSelected(parent: AdapterView<*>?) = Unit
-
-        abstract fun onSelected(position: Int)
-    }
+    private fun formatInterval(seconds: Long): String =
+        when {
+            seconds < 60L -> "${seconds}秒"
+            seconds % 3600L == 0L -> "${seconds / 3600L}時間"
+            seconds % 60L == 0L -> "${seconds / 60L}分"
+            else -> "${seconds}秒"
+        }
 
     private data class IntervalOption(
-        val minutes: Long,
+        val seconds: Long,
         val label: String,
     )
 
@@ -711,15 +742,20 @@ class MainActivity : Activity() {
         private const val REQUEST_OPEN_IMAGES = 1001
         private const val REQUEST_OPEN_FOLDER = 1002
         private const val REQUEST_OPEN_ZIP = 1003
+        private const val DEFAULT_INTERVAL_INDEX = 6
 
         private val INTERVALS = listOf(
-            IntervalOption(15, "15分"),
-            IntervalOption(30, "30分"),
-            IntervalOption(60, "1時間"),
-            IntervalOption(180, "3時間"),
-            IntervalOption(360, "6時間"),
-            IntervalOption(720, "12時間"),
-            IntervalOption(1440, "24時間"),
+            IntervalOption(10, "10秒（高速）"),
+            IntervalOption(30, "30秒（高速）"),
+            IntervalOption(60, "1分（高速）"),
+            IntervalOption(300, "5分（高速）"),
+            IntervalOption(900, "15分"),
+            IntervalOption(1800, "30分"),
+            IntervalOption(3600, "1時間"),
+            IntervalOption(10800, "3時間"),
+            IntervalOption(21600, "6時間"),
+            IntervalOption(43200, "12時間"),
+            IntervalOption(86400, "24時間"),
         )
     }
 }
