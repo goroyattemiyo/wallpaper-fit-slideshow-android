@@ -77,6 +77,8 @@ class SettingsStore(context: Context) {
                 settings.intervalSeconds.coerceAtLeast(AppSettings.MIN_INTERVAL_SECONDS),
             )
             .put("orderMode", settings.orderMode.name)
+            .put("homeWallpaperBlurRadius", settings.homeWallpaperBlurRadius)
+            .put("lockWallpaperBlurRadius", settings.lockWallpaperBlurRadius)
             .put("currentHomeItemId", settings.currentHomeItemId ?: JSONObject.NULL)
             .put("currentLockItemId", settings.currentLockItemId ?: JSONObject.NULL)
             .put("lastSuccessEpochMillis", settings.lastSuccessEpochMillis ?: JSONObject.NULL)
@@ -94,7 +96,6 @@ class SettingsStore(context: Context) {
             .put("backgroundMode", layout.backgroundMode.name)
             .put("blurRadius", layout.blurRadius)
             .put("backgroundImageAlpha", layout.backgroundImageAlpha)
-            .put("wallpaperBlurRadius", layout.wallpaperBlurRadius)
 
     private fun decode(root: JSONObject): AppSettings {
         val schemaVersion = root.optInt("schemaVersion", 1)
@@ -187,6 +188,12 @@ class SettingsStore(context: Context) {
                 root.optString("orderMode"),
                 OrderMode.SEQUENTIAL,
             ),
+            homeWallpaperBlurRadius = root
+                .optInt("homeWallpaperBlurRadius", 0)
+                .coerceIn(0, AppSettings.MAX_WALLPAPER_BLUR_RADIUS),
+            lockWallpaperBlurRadius = root
+                .optInt("lockWallpaperBlurRadius", 0)
+                .coerceIn(0, AppSettings.MAX_WALLPAPER_BLUR_RADIUS),
             currentHomeItemId = currentHomeItemId,
             currentLockItemId = currentLockItemId,
             lastSuccessEpochMillis = root.optNullableLong("lastSuccessEpochMillis"),
@@ -232,9 +239,6 @@ class SettingsStore(context: Context) {
             backgroundImageAlpha = layoutJson
                 .optInt("backgroundImageAlpha", 255)
                 .coerceIn(0, 255),
-            wallpaperBlurRadius = layoutJson
-                .optInt("wallpaperBlurRadius", 0)
-                .coerceIn(0, WallpaperLayoutState.MAX_WALLPAPER_BLUR_RADIUS),
         )
 
     private inline fun <reified T : Enum<T>> enumOrDefault(

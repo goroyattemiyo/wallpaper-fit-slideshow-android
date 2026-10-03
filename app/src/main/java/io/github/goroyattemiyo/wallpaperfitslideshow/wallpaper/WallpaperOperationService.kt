@@ -111,6 +111,7 @@ class WallpaperOperationService(
                     item = candidate,
                     layout = candidate.layoutFor(target),
                     geometry = targetSizeResolver.resolve(),
+                    wallpaperBlurRadius = initial.wallpaperBlurRadiusFor(target),
                 )
             } catch (exception: WallpaperRenderer.RenderException) {
                 lastRenderError = exception.message ?: "画像を処理できませんでした。"
@@ -175,6 +176,7 @@ class WallpaperOperationService(
                 item = item,
                 layout = item.layoutFor(target),
                 geometry = targetSizeResolver.resolve(),
+                wallpaperBlurRadius = settingsStore.load().wallpaperBlurRadiusFor(target),
             )
         } catch (exception: WallpaperRenderer.RenderException) {
             val message = exception.message ?: "画像を処理できませんでした。"

@@ -64,6 +64,7 @@ class WallpaperPreviewView @JvmOverloads constructor(
     private var logicalSourceHeight = 0
     private var targetWidth = 9
     private var targetHeight = 20
+    private var wallpaperBlurRadius = 0
 
     private var lastX = 0f
     private var lastY = 0f
@@ -109,10 +110,6 @@ class WallpaperPreviewView @JvmOverloads constructor(
                     WallpaperLayoutState.MAX_BLUR_RADIUS,
                 ),
                 backgroundImageAlpha = value.backgroundImageAlpha.coerceIn(0, 255),
-                wallpaperBlurRadius = value.wallpaperBlurRadius.coerceIn(
-                    0,
-                    WallpaperLayoutState.MAX_WALLPAPER_BLUR_RADIUS,
-                ),
             ),
             notify = false,
         )
@@ -176,14 +173,11 @@ class WallpaperPreviewView @JvmOverloads constructor(
     }
 
     fun setWallpaperBlurRadius(radius: Int) {
-        updateLayoutState(
-            layoutState.copy(
-                wallpaperBlurRadius = radius.coerceIn(
-                    0,
-                    WallpaperLayoutState.MAX_WALLPAPER_BLUR_RADIUS,
-                ),
-            ),
+        wallpaperBlurRadius = radius.coerceIn(
+            0,
+            io.github.goroyattemiyo.wallpaperfitslideshow.model.AppSettings.MAX_WALLPAPER_BLUR_RADIUS,
         )
+        invalidate()
     }
 
     fun resetCurrentMode() {
@@ -245,7 +239,7 @@ class WallpaperPreviewView @JvmOverloads constructor(
             return
         }
 
-        if (layoutState.wallpaperBlurRadius > 0) {
+        if (wallpaperBlurRadius > 0) {
             val work = obtainEffectBitmap()
             val workCanvas = Canvas(work)
             work.eraseColor(Color.TRANSPARENT)
@@ -253,7 +247,7 @@ class WallpaperPreviewView @JvmOverloads constructor(
             WallpaperBlurRenderer.apply(
                 bitmap = work,
                 region = Rect(0, 0, work.width, work.height),
-                radius = layoutState.wallpaperBlurRadius,
+                radius = wallpaperBlurRadius,
             )
             canvas.drawBitmap(work, 0f, 0f, paint)
             return

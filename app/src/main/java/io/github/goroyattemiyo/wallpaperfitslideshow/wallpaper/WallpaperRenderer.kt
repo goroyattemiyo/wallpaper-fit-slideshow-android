@@ -30,6 +30,7 @@ class WallpaperRenderer(
         item: WallpaperItem,
         layout: WallpaperLayoutState,
         geometry: WallpaperGeometry,
+        wallpaperBlurRadius: Int = 0,
     ): RenderedWallpaper {
         val info = try {
             sourceLoader.inspect(item.uri)
@@ -77,6 +78,7 @@ class WallpaperRenderer(
                 layoutTransform = transform,
                 layout = layout,
                 geometry = geometry,
+                wallpaperBlurRadius = wallpaperBlurRadius,
             )
         } catch (outOfMemory: OutOfMemoryError) {
             throw RenderException("壁紙生成中にメモリが不足しました。", outOfMemory)
@@ -92,6 +94,7 @@ class WallpaperRenderer(
         layoutTransform: LayoutTransform,
         layout: io.github.goroyattemiyo.wallpaperfitslideshow.model.WallpaperLayoutState,
         geometry: WallpaperGeometry,
+        wallpaperBlurRadius: Int,
     ): RenderedWallpaper {
         val output = Bitmap.createBitmap(
             geometry.outputSize.width,
@@ -135,7 +138,7 @@ class WallpaperRenderer(
             WallpaperBlurRenderer.apply(
                 bitmap = output,
                 region = visibleCropHint,
-                radius = layout.wallpaperBlurRadius,
+                radius = wallpaperBlurRadius,
             )
 
             return RenderedWallpaper(

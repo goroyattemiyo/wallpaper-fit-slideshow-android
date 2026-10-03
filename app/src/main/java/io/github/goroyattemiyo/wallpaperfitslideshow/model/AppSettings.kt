@@ -27,12 +27,10 @@ data class WallpaperLayoutState(
     val backgroundMode: BackgroundMode = BackgroundMode.SOLID,
     val blurRadius: Int = DEFAULT_BLUR_RADIUS,
     val backgroundImageAlpha: Int = 255,
-    val wallpaperBlurRadius: Int = 0,
 ) {
     companion object {
         const val DEFAULT_BLUR_RADIUS = 12
         const val MAX_BLUR_RADIUS = 30
-        const val MAX_WALLPAPER_BLUR_RADIUS = 30
     }
 }
 
@@ -66,6 +64,8 @@ data class AppSettings(
     val slideshowEnabled: Boolean = false,
     val intervalSeconds: Long = DEFAULT_INTERVAL_SECONDS,
     val orderMode: OrderMode = OrderMode.SEQUENTIAL,
+    val homeWallpaperBlurRadius: Int = 0,
+    val lockWallpaperBlurRadius: Int = 0,
     val currentHomeItemId: String? = null,
     val currentLockItemId: String? = null,
     val lastSuccessEpochMillis: Long? = null,
@@ -79,10 +79,18 @@ data class AppSettings(
             WallpaperTarget.BOTH -> null
         }
 
+    fun wallpaperBlurRadiusFor(target: WallpaperTarget): Int =
+        when (target) {
+            WallpaperTarget.HOME -> homeWallpaperBlurRadius
+            WallpaperTarget.LOCK -> lockWallpaperBlurRadius
+            WallpaperTarget.BOTH -> 0
+        }
+
     companion object {
-        const val CURRENT_SCHEMA_VERSION = 5
+        const val CURRENT_SCHEMA_VERSION = 6
         const val DEFAULT_INTERVAL_SECONDS = 3600L
         const val MIN_INTERVAL_SECONDS = 10L
         const val WORK_MANAGER_MIN_INTERVAL_SECONDS = 15L * 60L
+        const val MAX_WALLPAPER_BLUR_RADIUS = 30
     }
 }
