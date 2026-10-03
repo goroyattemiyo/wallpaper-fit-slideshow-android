@@ -121,9 +121,7 @@ V1の仕様・アーキテクチャを確定してからAndroid実装へ入る�
 
 ## Current Implementation Snapshot
 
-Latest application code commit before this handoff documentation:
-
-- `bdfd21fc889b9b64eefdbc39b190474d3ed20cd7`
+Latest application code is tracked on branch head; exact commit updated with each verified step.
 
 Implemented:
 
@@ -139,7 +137,11 @@ Implemented:
 - physical-screen visible viewport
 - WallpaperManager visibleCropHint
 - Home / Lock / Both
-- manual Next
+- slideshow target checkbox (enabled/disabled per image)
+- select all / clear all slideshow targets
+- explicit target count in Start button/status
+- manual Next uses slideshow targets only
+- direct editor action: apply this one image now
 - WorkManager periodic schedule
 - lifecycle / race / missing-source handling
 - local verification script

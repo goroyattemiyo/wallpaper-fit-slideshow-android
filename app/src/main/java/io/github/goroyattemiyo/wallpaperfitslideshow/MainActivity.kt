@@ -15,6 +15,7 @@ import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import io.github.goroyattemiyo.wallpaperfitslideshow.data.SettingsStore
+import io.github.goroyattemiyo.wallpaperfitslideshow.ui.WallpaperItemAdapter
 import io.github.goroyattemiyo.wallpaperfitslideshow.model.AppSettings
 import io.github.goroyattemiyo.wallpaperfitslideshow.model.OrderMode
 import io.github.goroyattemiyo.wallpaperfitslideshow.model.WallpaperItem
@@ -35,6 +36,9 @@ class MainActivity : Activity() {
     private lateinit var orderSpinner: Spinner
     private lateinit var targetSpinner: Spinner
     private lateinit var intervalSpinner: Spinner
+    private lateinit var itemAdapter: WallpaperItemAdapter
+    private lateinit var startButton: Button
+    private lateinit var nextButton: Button
 
     private val executor: ExecutorService = Executors.newSingleThreadExecutor()
     private var settings: AppSettings = AppSettings()
@@ -54,6 +58,13 @@ class MainActivity : Activity() {
         orderSpinner = findViewById(R.id.order_spinner)
         targetSpinner = findViewById(R.id.target_spinner)
         intervalSpinner = findViewById(R.id.interval_spinner)
+        startButton = findViewById(R.id.start_button)
+        nextButton = findViewById(R.id.next_button)
+        itemAdapter = WallpaperItemAdapter(
+            context = this,
+            onEnabledChanged = ::setItemEnabled,
+        )
+        imageList.adapter = itemAdapter
 
         configureSpinners()
         configureButtons()
@@ -76,8 +87,14 @@ class MainActivity : Activity() {
     private fun configureList() {
         imageList.choiceMode = ListView.CHOICE_MODE_SINGLE
         imageList.setOnItemClickListener { _, _, position, _ ->
-            selectedItemId = settings.items.getOrNull(position)?.id
+            val item = itemAdapter.getItem(position)
+            selectedItemId = item.id
             imageList.setItemChecked(position, true)
+            itemAdapter.update(
+                items = settings.items,
+                currentItemId = settings.currentItemId,
+                selectedItemId = selectedItemId,
+            )
         }
     }
 
@@ -97,13 +114,19 @@ class MainActivity : Activity() {
         findViewById<Button>(R.id.move_down_button).setOnClickListener {
             moveSelected(1)
         }
-        findViewById<Button>(R.id.start_button).setOnClickListener {
+        findViewById<Button>(R.id.select_all_button).setOnClickListener {
+            setAllItemsEnabled(true)
+        }
+        findViewById<Button>(R.id.clear_all_button).setOnClickListener {
+            setAllItemsEnabled(false)
+        }
+        startButton.setOnClickListener {
             startSlideshow()
         }
         findViewById<Button>(R.id.stop_button).setOnClickListener {
             stopSlideshow()
         }
-        findViewById<Button>(R.id.next_button).setOnClickListener {
+        nextButton.setOnClickListener {
             applyNextNow()
         }
     }
@@ -274,6 +297,50 @@ class MainActivity : Activity() {
         }
     }
 
+    private fun setItemEnabled(
+        itemId: String,
+        enabled: Boolean,
+    ) {
+        settings = settingsStore.update { current ->
+            val updatedItems = current.items.map { item ->
+                if (item.id == itemId) item.copy(enabled = enabled) else item
+            }
+            val enabledCount = updatedItems.count { it.enabled }
+            current.copy(
+                items = updatedItems,
+                slideshowEnabled = current.slideshowEnabled && enabledCount >= 2,
+                currentItemId = current.currentItemId
+                    ?.takeIf { currentId ->
+                        updatedItems.any { it.id == currentId && it.enabled }
+                    },
+            )
+        }
+
+        if (!settings.slideshowEnabled) {
+            scheduler.cancel()
+        }
+        refreshUi()
+    }
+
+    private fun setAllItemsEnabled(enabled: Boolean) {
+        settings = settingsStore.update { current ->
+            val updatedItems = current.items.map { it.copy(enabled = enabled) }
+            current.copy(
+                items = updatedItems,
+                slideshowEnabled = current.slideshowEnabled && enabled && updatedItems.size >= 2,
+                currentItemId = current.currentItemId
+                    ?.takeIf { currentId ->
+                        updatedItems.any { it.id == currentId && it.enabled }
+                    },
+            )
+        }
+
+        if (!settings.slideshowEnabled) {
+            scheduler.cancel()
+        }
+        refreshUi()
+    }
+
     private fun editSelected() {
         val id = selectedItemId ?: run {
             toast("編集する画像を選択してください。")
@@ -350,7 +417,7 @@ class MainActivity : Activity() {
     private fun startSlideshow() {
         settings = settingsStore.load()
         if (settings.items.count { it.enabled } < 2) {
-            toast("自動切替には画像を2枚以上追加してください。")
+            toast("スライドショー対象を2枚以上チェックしてください。")
             return
         }
 
@@ -383,7 +450,7 @@ class MainActivity : Activity() {
                     is WallpaperOperationResult.Failure -> toast(result.message)
                     WallpaperOperationResult.Busy -> toast("壁紙変更処理が実行中です。")
                     WallpaperOperationResult.Disabled -> Unit
-                    WallpaperOperationResult.NoImages -> toast("有効な画像がありません。")
+                    WallpaperOperationResult.NoImages -> toast("スライドショー対象の画像がありません。")
                 }
                 refreshUi()
             }
@@ -416,33 +483,27 @@ class MainActivity : Activity() {
             bindingControls = false
         }
 
-        val labels = settings.items.map { item ->
-            buildString {
-                if (item.id == settings.currentItemId) append("● ")
-                append(item.displayName)
-                append(
-                    when (item.layout.mode) {
-                        io.github.goroyattemiyo.wallpaperfitslideshow.core.layout.LayoutMode.CONTAIN ->
-                            "  [全体]"
-                        io.github.goroyattemiyo.wallpaperfitslideshow.core.layout.LayoutMode.CROP ->
-                            "  [Crop]"
-                    },
-                )
-            }
-        }
-        imageList.adapter = ArrayAdapter(
-            this,
-            android.R.layout.simple_list_item_single_choice,
-            labels,
+        itemAdapter.update(
+            items = settings.items,
+            currentItemId = settings.currentItemId,
+            selectedItemId = selectedItemId,
         )
 
         val selectedIndex = settings.items.indexOfFirst { it.id == selectedItemId }
         if (selectedIndex >= 0) {
             imageList.setItemChecked(selectedIndex, true)
+        } else {
+            imageList.clearChoices()
         }
+
+        val enabledCount = settings.items.count { it.enabled }
+        startButton.text = "スライドショー開始（${enabledCount}枚）"
+        nextButton.text = "次へ（対象のみ）"
 
         statusText.text = buildString {
             append(if (settings.slideshowEnabled) "自動切替: ON" else "自動切替: OFF")
+            append(" / 対象 ")
+            append(enabledCount)
             append(" / ")
             append(settings.items.size)
             append("枚")
