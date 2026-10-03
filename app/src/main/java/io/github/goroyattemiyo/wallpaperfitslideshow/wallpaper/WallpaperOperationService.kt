@@ -46,15 +46,10 @@ class WallpaperOperationService(
         }
 
         val minimumCount = if (requireSlideshowEnabled) 2 else 1
-        val targets = listOf(WallpaperTarget.HOME, WallpaperTarget.LOCK)
-            .filter { target ->
-                initial.items.count { it.isEnabledFor(target) } >= minimumCount
-            }
-
-        if (targets.isEmpty()) {
+        if (initial.items.count { it.homeEnabled } < minimumCount) {
             persistError(
                 if (requireSlideshowEnabled) {
-                    "ホームまたはロックに2枚以上の対象画像が必要です。"
+                    "使用する画像を2枚以上選択してください。"
                 } else {
                     "スライドショー対象の画像がありません。"
                 },
@@ -62,17 +57,21 @@ class WallpaperOperationService(
             return WallpaperOperationResult.NoImages
         }
 
-        val appliedTargets = linkedSetOf<WallpaperTarget>()
         val warnings = mutableListOf<String>()
+        val appliedTargets = linkedSetOf<WallpaperTarget>()
 
-        for (target in targets) {
-            when (val result = applyNextForTarget(target, requireSlideshowEnabled)) {
-                is TargetApplyResult.Applied -> appliedTargets += target
-                is TargetApplyResult.Failed -> warnings +=
-                    "${targetLabel(target)}: ${result.message}"
-                TargetApplyResult.Disabled ->
-                    return WallpaperOperationResult.Disabled
-            }
+        when (
+            val result = applyNextForTarget(
+                WallpaperTarget.HOME,
+                requireSlideshowEnabled,
+            )
+        ) {
+            is TargetApplyResult.Applied ->
+                appliedTargets += WallpaperTarget.HOME
+            is TargetApplyResult.Failed ->
+                warnings += result.message
+            TargetApplyResult.Disabled ->
+                return WallpaperOperationResult.Disabled
         }
 
         return if (appliedTargets.isNotEmpty()) {
