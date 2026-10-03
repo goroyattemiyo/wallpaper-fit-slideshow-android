@@ -588,3 +588,36 @@ Still to verify on Redmi / HyperOS:
 - rapid +/- taps no longer queue one heavy render per tap
 - wallpaper follows after the short debounce/render delay
 - final wallpaper matches the final displayed widget value
+
+
+## Home-only V1 Scope - 2026-10-04
+
+Latest product decision:
+
+- Lock-screen wallpaper images are excluded from V1.
+- Runtime/UI is now Home-only.
+- Existing Lock-related persisted fields remain for backward compatibility and reversibility.
+- Existing Lock values are not deleted or migrated away yet.
+
+Implemented:
+
+- wallpaper list shows one "使用" checkbox only
+- Lock checkbox removed
+- main status/detail/start counts are Home-only
+- Settings Lock blur control removed
+- Settings save no longer modifies Lock blur
+- image editor Home/Lock selector removed
+- image editor edits/saves Home layout only
+- direct apply from editor targets Home only
+- slideshow / Next now selects and applies Home only
+- settings reapply targets current Home only
+- old Lock data remains dormant
+
+Static review:
+
+- removed Lock UI IDs are no longer referenced by MainActivity / ImageEditorActivity / WallpaperItemAdapter
+- user-facing reviewed layouts contain no Lock/ロック controls
+- slideshow target list no longer includes WallpaperTarget.LOCK
+- brace balance for touched Kotlin files: PASS
+- Unit/Lint/assemble/install after Home-only change: NOT YET RUN
+- CI: NOT RUN
