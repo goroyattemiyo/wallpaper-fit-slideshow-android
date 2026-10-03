@@ -22,17 +22,28 @@ class HomeWidgetController(
     private val sourceLoader = SourceBitmapLoader(appContext)
     private val targetSizeResolver = WallpaperTargetSizeResolver(appContext)
 
-    fun handle(action: String) {
+    fun handle(
+        action: String,
+        onStateChanged: () -> Unit = {},
+    ) {
         when (action) {
-            WallpaperControlWidgetProvider.ACTION_ZOOM_IN -> adjustZoom(ZOOM_FACTOR)
-            WallpaperControlWidgetProvider.ACTION_ZOOM_OUT -> adjustZoom(1.0 / ZOOM_FACTOR)
-            WallpaperControlWidgetProvider.ACTION_ZOOM_RESET -> resetZoom()
-            WallpaperControlWidgetProvider.ACTION_BLUR_IN -> adjustHomeBlur(1)
-            WallpaperControlWidgetProvider.ACTION_BLUR_OUT -> adjustHomeBlur(-1)
+            WallpaperControlWidgetProvider.ACTION_ZOOM_IN ->
+                adjustZoom(ZOOM_FACTOR, onStateChanged)
+            WallpaperControlWidgetProvider.ACTION_ZOOM_OUT ->
+                adjustZoom(1.0 / ZOOM_FACTOR, onStateChanged)
+            WallpaperControlWidgetProvider.ACTION_ZOOM_RESET ->
+                resetZoom(onStateChanged)
+            WallpaperControlWidgetProvider.ACTION_BLUR_IN ->
+                adjustHomeBlur(1, onStateChanged)
+            WallpaperControlWidgetProvider.ACTION_BLUR_OUT ->
+                adjustHomeBlur(-1, onStateChanged)
         }
     }
 
-    private fun adjustZoom(factor: Double) {
+    private fun adjustZoom(
+        factor: Double,
+        onStateChanged: () -> Unit,
+    ) {
         val snapshot = settingsStore.load()
         val currentId = snapshot.currentHomeItemId ?: return
         val item = snapshot.items.firstOrNull { it.id == currentId } ?: return
@@ -49,10 +60,13 @@ class HomeWidgetController(
                 },
             )
         }
+        onStateChanged()
         operationService.applyItem(currentId, WallpaperTarget.HOME)
     }
 
-    private fun resetZoom() {
+    private fun resetZoom(
+        onStateChanged: () -> Unit,
+    ) {
         val snapshot = settingsStore.load()
         val currentId = snapshot.currentHomeItemId ?: return
 
@@ -71,10 +85,14 @@ class HomeWidgetController(
                 },
             )
         }
+        onStateChanged()
         operationService.applyItem(currentId, WallpaperTarget.HOME)
     }
 
-    private fun adjustHomeBlur(delta: Int) {
+    private fun adjustHomeBlur(
+        delta: Int,
+        onStateChanged: () -> Unit,
+    ) {
         val updated = settingsStore.update { current ->
             current.copy(
                 homeWallpaperBlurRadius = (
@@ -86,6 +104,7 @@ class HomeWidgetController(
             )
         }
 
+        onStateChanged()
         updated.currentHomeItemId?.let { currentId ->
             operationService.applyItem(currentId, WallpaperTarget.HOME)
         }

@@ -6,11 +6,14 @@ import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.widget.RemoteViews
 import io.github.goroyattemiyo.wallpaperfitslideshow.MainActivity
 import io.github.goroyattemiyo.wallpaperfitslideshow.R
+import io.github.goroyattemiyo.wallpaperfitslideshow.core.layout.LayoutCalculator
 import io.github.goroyattemiyo.wallpaperfitslideshow.core.layout.LayoutMode
 import io.github.goroyattemiyo.wallpaperfitslideshow.data.SettingsStore
+import io.github.goroyattemiyo.wallpaperfitslideshow.model.AppSettings
 import java.util.concurrent.Executors
 import kotlin.math.roundToInt
 
@@ -41,7 +44,10 @@ class WallpaperControlWidgetProvider : AppWidgetProvider() {
         val pendingResult = goAsync()
         EXECUTOR.execute {
             try {
-                HomeWidgetController(context).handle(intent.action.orEmpty())
+                HomeWidgetController(context).handle(
+                    action = intent.action.orEmpty(),
+                    onStateChanged = { updateAll(context) },
+                )
             } finally {
                 updateAll(context)
                 pendingResult.finish()
@@ -98,6 +104,25 @@ class WallpaperControlWidgetProvider : AppWidgetProvider() {
                 else -> "Zoom ${(current.homeLayout.userScale * 100).roundToInt()}%"
             }
             val blurText = "Blur ${settings.homeWallpaperBlurRadius}"
+            val zoomBar = when {
+                current == null -> WidgetSliderFormatter.emptyBar()
+                current.homeLayout.mode == LayoutMode.CONTAIN ->
+                    WidgetSliderFormatter.bar(
+                        value = 1.0,
+                        min = LayoutCalculator.MIN_CROP_USER_SCALE,
+                        max = LayoutCalculator.MAX_CROP_USER_SCALE,
+                    )
+                else -> WidgetSliderFormatter.bar(
+                    value = current.homeLayout.userScale,
+                    min = LayoutCalculator.MIN_CROP_USER_SCALE,
+                    max = LayoutCalculator.MAX_CROP_USER_SCALE,
+                )
+            }
+            val blurBar = WidgetSliderFormatter.bar(
+                value = settings.homeWallpaperBlurRadius.toDouble(),
+                min = 0.0,
+                max = AppSettings.MAX_WALLPAPER_BLUR_RADIUS.toDouble(),
+            )
             val title = current?.displayName ?: "ホーム壁紙なし"
 
             return RemoteViews(
@@ -106,7 +131,9 @@ class WallpaperControlWidgetProvider : AppWidgetProvider() {
             ).apply {
                 setTextViewText(R.id.widget_current_name, title)
                 setTextViewText(R.id.widget_zoom_value, zoomText)
+                setTextViewText(R.id.widget_zoom_bar, zoomBar)
                 setTextViewText(R.id.widget_blur_value, blurText)
+                setTextViewText(R.id.widget_blur_bar, blurBar)
 
                 setOnClickPendingIntent(
                     R.id.widget_zoom_out,
@@ -145,6 +172,7 @@ class WallpaperControlWidgetProvider : AppWidgetProvider() {
                 requestCode,
                 Intent(context, WallpaperControlWidgetProvider::class.java)
                     .setAction(action)
+                    .setData(Uri.parse("wallpaperfit://widget/control/$requestCode"))
                     .addFlags(Intent.FLAG_RECEIVER_FOREGROUND),
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
             )
