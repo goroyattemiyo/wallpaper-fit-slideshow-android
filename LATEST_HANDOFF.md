@@ -19,7 +19,7 @@ V1の仕様・アーキテクチャを確定してからAndroid実装へ入る�
 ## Current Status
 
 - Status: implemented-unverified
-- Android project scaffold: implemented-unverified
+- Android project scaffold: checked
 - V1 functional path: implemented-unverified
 - CI: not configured / not run
 - Real device test: not started
@@ -51,7 +51,7 @@ V1の仕様・アーキテクチャを確定してからAndroid実装へ入る�
 - [x] layout editor実装
 - [x] scheduler実装
 - [x] Pure Kotlin unit tests written
-- [ ] Android/Gradle tests executed
+- [x] Android/Gradle tests executed
 - [ ] Redmi 12 5G / HyperOS実機確認
 
 ## Known Risks
@@ -92,15 +92,15 @@ V1の仕様・アーキテクチャを確定してからAndroid実装へ入る�
 - [x] Android公式 Storage Access Framework / persistable URI確認
 - [x] Pure Kotlin core smoke check: PASS (layout / selector / decode / geometry)
 - [x] WallpaperManager / WorkManager / SAF APIs reviewed against Android official docs
-- [ ] Android Gradle compile
-- [ ] unit test
+- [x] Android Gradle compile: PASS (2026-10-03, Windows local)
+- [x] unit test: PASS (`testDebugUnitTest`, 2026-10-03)
 - [ ] integration test
 - [ ] CI
 - [ ] real device
 
 ## Next Action
 
-1. Home Windows環境で `scripts/local-verify.ps1 -Install` を実行
+1. ADB authorizationをRedmi側で許可してdebug APKをinstall
 2. `docs/REAL_DEVICE_TEST.md` に沿ってRedmi 12 5Gで確認
 3. 失敗があれば原因特定 → 最小修正 → 再検証
 4. 実機PASS後にのみPRをReady for reviewへ変更しFull CIを1回実行
@@ -141,11 +141,16 @@ Implemented:
 - local verification script
 - Redmi real-device checklist
 
+Verified locally on Windows (2026-10-03):
+
+- `testDebugUnitTest`: PASS
+- `lintDebug`: PASS
+- `assembleDebug`: PASS
+- Debug APK generated: `app/build/outputs/apk/debug/app-debug.apk`
+
 Unverified:
 
-- Android Gradle compile
-- lint
-- APK build
+- APK install / launch on Redmi
 - Redmi runtime behavior
 - actual HyperOS preview-to-wallpaper crop difference
 - EXIF edge cases on real files
