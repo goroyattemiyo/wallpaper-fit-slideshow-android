@@ -341,3 +341,26 @@ Current verification status remains:
 - assembleDebug: NOT YET RUN for this batch
 - Redmi install / behavior: NOT YET VERIFIED for this batch
 - GitHub Actions: NOT RUN
+
+
+## Whole Wallpaper Blur - 2026-10-03
+
+Implemented, local verification pending:
+
+- settings schema bumped to 5
+- `WallpaperLayoutState.wallpaperBlurRadius` added (0..30, default 0)
+- Home / Lock store blur independently through their existing separate layouts
+- blur is applied after foreground + background composition
+- preview and final wallpaper both use `WallpaperBlurRenderer`
+- shared box-blur logic extracted into `BitmapBlur`
+- final wallpaper blur uses a bounded 360px-wide work bitmap to reduce memory cost
+- editor now has a separate "壁紙ぼかし" control
+- selected-item detail shows "壁紙ぼかし" when enabled
+- background blur remains a separate setting
+
+Verification status for this latest batch:
+
+- static code review: PASS
+- unit/lint/assemble/install: NOT YET RUN after these changes
+- real-device blur quality/performance: NOT YET VERIFIED
+- CI: NOT RUN

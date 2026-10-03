@@ -402,3 +402,21 @@ Slideshow:
 - [ ] If Home has 2+ and Lock has fewer than 2, periodic slideshow continues only for Home
 - [ ] If Lock has 2+ and Home has fewer than 2, periodic slideshow continues only for Lock
 - [ ] Disabling a currently displayed image does not falsely erase its "current" indication before the next change
+
+
+## 24. Whole Wallpaper Blur
+
+Use an image where launcher icons are hard to read.
+
+- [ ] Open Home editor and tap "壁紙ぼかし"
+- [ ] Radius 0 shows the unblurred wallpaper
+- [ ] Radius around 10 visibly softens the whole wallpaper
+- [ ] Radius 30 is stronger than radius 10
+- [ ] Foreground image and unused-area background are both blurred together
+- [ ] Preview remains responsive while changing blur
+- [ ] Save/reopen restores the Home blur radius
+- [ ] Set Home blur > 0 and Lock blur = 0; switching editor target preserves both independently
+- [ ] Apply Home and confirm launcher icons/text are easier to distinguish as intended
+- [ ] Apply Lock and confirm Lock remains unblurred when its radius is 0
+- [ ] Actual wallpaper blur is visually close to preview
+- [ ] Large source images do not cause OOM or crash during blur/apply

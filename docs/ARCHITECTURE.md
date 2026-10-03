@@ -287,3 +287,17 @@ Rules:
 - 約8MiB上限のメモリLruCache
 - 一覧ImageViewのtagでrow再利用時の取り違えを防止
 - 元画像のフルdecodeを一覧では行わない
+
+
+### BitmapBlur / WallpaperBlurRenderer
+
+壁紙全体ぼかしは背景ぼかしとは別機能として扱う。
+
+- `BitmapBlur`: 共通box-blur実装
+- `BackgroundRenderer`: 背景ぼかしで共通blur処理を使用
+- `WallpaperBlurRenderer`: 合成済み壁紙のvisible regionを縮小work bitmapへ描画し、blur後に戻す
+- 最大work幅: 360px
+- preview / final renderer双方で同じWallpaperBlurRendererを使用
+- Home / LockそれぞれのWallpaperLayoutStateにwallpaperBlurRadiusを保存
+
+全解像度に複数のIntArrayを確保しないことで、OOMリスクを抑える。
