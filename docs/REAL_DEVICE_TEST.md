@@ -337,3 +337,17 @@ Timing is best-effort rather than an exact-alarm guarantee. Record actual behavi
 - [ ] Settings button opens order / target / interval controls
 - [ ] Saved values appear in the compact summary
 
+
+
+## 21. Gesture-first Editor UI
+
+- [ ] Top-left "← 戻る" is always visible
+- [ ] Back button saves the current layout and returns to the list
+- [ ] Preview keeps the actual device aspect ratio
+- [ ] Preview no longer occupies the whole screen
+- [ ] Main editor actions remain visible without scrolling
+- [ ] "自由調整" supports pinch to shrink/enlarge
+- [ ] One-finger drag moves the image
+- [ ] "全体表示" remains available as a quick fit mode
+- [ ] Background blur/transparency controls are inside the Background dialog rather than always occupying the editor
+- [ ] "この1枚を今すぐ壁紙にする" remains visible

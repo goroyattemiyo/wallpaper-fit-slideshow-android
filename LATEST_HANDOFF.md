@@ -198,3 +198,17 @@ Implemented but current branch re-verification is pending:
 - below 15 minutes: user-started foreground fast mode
 - foreground service uses Android `specialUse` type
 - no exact-alarm permission
+
+
+## Latest Editor UI Change
+
+Implemented, pending local re-verification:
+
+- gesture-first editor
+- smaller aspect-correct preview
+- top "Back" action
+- Back saves current layout
+- pinch for shrink/enlarge in Free Adjust mode
+- one-finger drag for positioning
+- persistent zoom/position sliders removed from main editor
+- blur/transparency moved into Background dialog
