@@ -568,3 +568,23 @@ Verification status:
 - Unit/Lint/assemble/install after debounce fix: NOT YET RUN
 - Redmi response/latency after debounce fix: NOT YET VERIFIED
 - CI: NOT RUN
+
+
+## Widget Debounce Build Install Pass - 2026-10-04
+
+User verification for the debounced widget build:
+
+- testDebugUnitTest: PASS
+- lintDebug: PASS
+- assembleDebug: PASS
+- generated APK: app/build/outputs/apk/debug/app-debug.apk
+- ADB device detected: PASS
+- adb install -r: PASS (`Success`)
+- GitHub Actions: NOT RUN
+
+Still to verify on Redmi / HyperOS:
+
+- Zoom/Blur numbers and pseudo slider react immediately to taps
+- rapid +/- taps no longer queue one heavy render per tap
+- wallpaper follows after the short debounce/render delay
+- final wallpaper matches the final displayed widget value
