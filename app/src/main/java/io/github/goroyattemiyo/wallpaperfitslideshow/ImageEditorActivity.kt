@@ -18,6 +18,7 @@ import io.github.goroyattemiyo.wallpaperfitslideshow.core.layout.LayoutMode
 import io.github.goroyattemiyo.wallpaperfitslideshow.data.SettingsStore
 import io.github.goroyattemiyo.wallpaperfitslideshow.model.BackgroundMode
 import io.github.goroyattemiyo.wallpaperfitslideshow.model.WallpaperLayoutState
+import io.github.goroyattemiyo.wallpaperfitslideshow.model.WallpaperTarget
 import io.github.goroyattemiyo.wallpaperfitslideshow.ui.WallpaperPreviewView
 import io.github.goroyattemiyo.wallpaperfitslideshow.wallpaper.SourceBitmapLoader
 import io.github.goroyattemiyo.wallpaperfitslideshow.wallpaper.WallpaperOperationResult
@@ -31,11 +32,17 @@ class ImageEditorActivity : Activity() {
     private lateinit var preview: WallpaperPreviewView
     private lateinit var titleText: TextView
     private lateinit var gestureStatusText: TextView
+    private lateinit var homeTargetButton: Button
+    private lateinit var lockTargetButton: Button
+    private lateinit var applyButton: Button
     private lateinit var operationService: WallpaperOperationService
 
     private val executor: ExecutorService = Executors.newSingleThreadExecutor()
     private var itemId: String? = null
     private var suppressBackSave = false
+    private var editingTarget: WallpaperTarget = WallpaperTarget.HOME
+    private var homeLayoutDraft = WallpaperLayoutState()
+    private var lockLayoutDraft = WallpaperLayoutState()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,6 +53,9 @@ class ImageEditorActivity : Activity() {
         preview = findViewById(R.id.wallpaper_preview)
         titleText = findViewById(R.id.editor_title)
         gestureStatusText = findViewById(R.id.gesture_status)
+        homeTargetButton = findViewById(R.id.home_target_button)
+        lockTargetButton = findViewById(R.id.lock_target_button)
+        applyButton = findViewById(R.id.apply_button)
 
         itemId = intent.getStringExtra(EXTRA_ITEM_ID)
         val item = settingsStore.load().items.firstOrNull { it.id == itemId }
@@ -57,18 +67,37 @@ class ImageEditorActivity : Activity() {
         }
 
         titleText.text = item.displayName
-        preview.setLayoutState(item.layout)
-        preview.onLayoutStateChanged = ::updateGestureStatus
-        updateGestureStatus(preview.layoutState)
+        homeLayoutDraft = item.homeLayout
+        lockLayoutDraft = item.lockLayout
+        editingTarget = if (!item.homeEnabled && item.lockEnabled) {
+            WallpaperTarget.LOCK
+        } else {
+            WallpaperTarget.HOME
+        }
 
         val geometry = WallpaperTargetSizeResolver(applicationContext).resolve()
         preview.setTargetSize(
             geometry.visibleWidth,
             geometry.visibleHeight,
         )
+        preview.onLayoutStateChanged = { state ->
+            when (editingTarget) {
+                WallpaperTarget.HOME -> homeLayoutDraft = state
+                WallpaperTarget.LOCK -> lockLayoutDraft = state
+                WallpaperTarget.BOTH -> Unit
+            }
+            updateGestureStatus(state)
+        }
+        selectTarget(editingTarget)
 
         findViewById<Button>(R.id.back_button).setOnClickListener {
             saveAndFinish(showToast = false)
+        }
+        homeTargetButton.setOnClickListener {
+            selectTarget(WallpaperTarget.HOME)
+        }
+        lockTargetButton.setOnClickListener {
+            selectTarget(WallpaperTarget.LOCK)
         }
         findViewById<Button>(R.id.contain_button).setOnClickListener {
             preview.showWholeImage()
@@ -82,7 +111,7 @@ class ImageEditorActivity : Activity() {
         findViewById<Button>(R.id.save_button).setOnClickListener {
             saveAndFinish(showToast = true)
         }
-        findViewById<Button>(R.id.apply_button).setOnClickListener {
+        applyButton.setOnClickListener {
             saveAndApply()
         }
 
@@ -133,8 +162,33 @@ class ImageEditorActivity : Activity() {
         super.onDestroy()
     }
 
+    private fun selectTarget(target: WallpaperTarget) {
+        require(target != WallpaperTarget.BOTH)
+        editingTarget = target
+        val state = when (target) {
+            WallpaperTarget.HOME -> homeLayoutDraft
+            WallpaperTarget.LOCK -> lockLayoutDraft
+            WallpaperTarget.BOTH -> homeLayoutDraft
+        }
+        preview.setLayoutState(state)
+        updateGestureStatus(state)
+        updateTargetButtons()
+    }
+
+    private fun updateTargetButtons() {
+        homeTargetButton.isEnabled = editingTarget != WallpaperTarget.HOME
+        lockTargetButton.isEnabled = editingTarget != WallpaperTarget.LOCK
+        homeTargetButton.text =
+            if (editingTarget == WallpaperTarget.HOME) "ホーム編集中" else "ホーム"
+        lockTargetButton.text =
+            if (editingTarget == WallpaperTarget.LOCK) "ロック編集中" else "ロック"
+        applyButton.text = "この1枚を${targetLabel(editingTarget)}へ"
+    }
+
     private fun updateGestureStatus(state: WallpaperLayoutState) {
         gestureStatusText.text = buildString {
+            append(targetLabel(editingTarget))
+            append(" / ")
             append(
                 if (state.mode == LayoutMode.CROP) {
                     "調整中  "
@@ -156,7 +210,10 @@ class ImageEditorActivity : Activity() {
             settings.copy(
                 items = settings.items.map { item ->
                     if (item.id == id) {
-                        item.copy(layout = preview.layoutState)
+                        item.copy(
+                            homeLayout = homeLayoutDraft,
+                            lockLayout = lockLayoutDraft,
+                        )
                     } else {
                         item
                     }
@@ -173,7 +230,7 @@ class ImageEditorActivity : Activity() {
         }
 
         if (showToast) {
-            Toast.makeText(this, "表示設定を保存しました。", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "ホーム/ロックの表示設定を保存しました。", Toast.LENGTH_SHORT).show()
         }
         suppressBackSave = true
         finish()
@@ -181,17 +238,23 @@ class ImageEditorActivity : Activity() {
 
     private fun saveAndApply() {
         val id = saveLayout() ?: return
-        Toast.makeText(this, "壁紙へ適用しています…", Toast.LENGTH_SHORT).show()
+        val target = editingTarget
+        Toast.makeText(
+            this,
+            "${targetLabel(target)}へ適用しています…",
+            Toast.LENGTH_SHORT,
+        ).show()
 
         executor.execute {
-            val result = operationService.applyItem(id)
+            val result = operationService.applyItem(id, target)
             runOnUiThread {
                 if (isFinishing || isDestroyed) {
                     return@runOnUiThread
                 }
 
                 val message = when (result) {
-                    is WallpaperOperationResult.Success -> "この画像を壁紙へ適用しました。"
+                    is WallpaperOperationResult.Success ->
+                        "この画像を${targetLabel(target)}へ適用しました。"
                     is WallpaperOperationResult.Failure -> result.message
                     WallpaperOperationResult.Busy -> "別の壁紙変更処理が実行中です。"
                     WallpaperOperationResult.Disabled -> "壁紙変更が無効です。"
@@ -249,9 +312,9 @@ class ImageEditorActivity : Activity() {
             val blurEnabled = preview.layoutState.backgroundMode == BackgroundMode.BLUR
             blurSeek.isEnabled = blurEnabled
             transparencySeek.isEnabled = blurEnabled
-            blurLabel.text = "ぼかし: \${preview.layoutState.blurRadius}"
+            blurLabel.text = "ぼかし: ${preview.layoutState.blurRadius}"
             transparencyLabel.text =
-                "背景画像の透明度: \${backgroundTransparencyPercent()}%"
+                "背景画像の透明度: ${backgroundTransparencyPercent()}%"
         }
 
         modeSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
@@ -294,7 +357,7 @@ class ImageEditorActivity : Activity() {
         refreshBackgroundLabels()
 
         AlertDialog.Builder(this)
-            .setTitle("背景設定")
+            .setTitle("${targetLabel(editingTarget)}の背景設定")
             .setView(dialogView)
             .setPositiveButton("閉じる", null)
             .show()
@@ -322,7 +385,7 @@ class ImageEditorActivity : Activity() {
         )
 
         AlertDialog.Builder(this)
-            .setTitle("背景色")
+            .setTitle("${targetLabel(editingTarget)}の背景色")
             .setItems(names) { _, which ->
                 if (which < colors.size) {
                     preview.setBackgroundColorValue(colors[which])
@@ -363,6 +426,13 @@ class ImageEditorActivity : Activity() {
             .setNegativeButton("キャンセル", null)
             .show()
     }
+
+    private fun targetLabel(target: WallpaperTarget): String =
+        when (target) {
+            WallpaperTarget.HOME -> "ホーム"
+            WallpaperTarget.LOCK -> "ロック"
+            WallpaperTarget.BOTH -> "両方"
+        }
 
     private class SimpleSeekListener(
         private val onProgress: (Int) -> Unit,
