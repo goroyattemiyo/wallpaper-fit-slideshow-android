@@ -1,9 +1,12 @@
 package io.github.goroyattemiyo.wallpaperfitslideshow
 
 import android.app.Activity
+import android.appwidget.AppWidgetManager
+import android.content.ComponentName
 import android.content.Intent
 import android.database.Cursor
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.provider.OpenableColumns
 import android.view.View
@@ -167,6 +170,12 @@ class MainActivity : Activity() {
         val lockBlurSeek = dialogView.findViewById<SeekBar>(
             R.id.dialog_lock_blur_seek,
         )
+        val widgetPinStatus = dialogView.findViewById<TextView>(
+            R.id.widget_pin_status,
+        )
+        val widgetPinButton = dialogView.findViewById<Button>(
+            R.id.widget_pin_button,
+        )
 
         orderSpinner.adapter = simpleSpinnerAdapter(
             listOf("順番", "ランダム"),
@@ -196,9 +205,13 @@ class MainActivity : Activity() {
             prefix = "ロック画面ぼかし",
             initialValue = settings.lockWallpaperBlurRadius,
         )
+        configureWidgetPinUi(
+            status = widgetPinStatus,
+            button = widgetPinButton,
+        )
 
         android.app.AlertDialog.Builder(this)
-            .setTitle("スライドショー設定")
+            .setTitle("設定")
             .setView(dialogView)
             .setPositiveButton("保存") { _, _ ->
                 val orderMode = if (orderSpinner.selectedItemPosition == 1) {
@@ -229,6 +242,83 @@ class MainActivity : Activity() {
             }
             .setNegativeButton("キャンセル", null)
             .show()
+    }
+
+    private fun configureWidgetPinUi(
+        status: TextView,
+        button: Button,
+    ) {
+        val appWidgetManager = AppWidgetManager.getInstance(applicationContext)
+        val provider = ComponentName(
+            applicationContext,
+            WallpaperControlWidgetProvider::class.java,
+        )
+        val installed = appWidgetManager.getAppWidgetIds(provider).isNotEmpty()
+
+        if (installed) {
+            status.text = "Widget：設置済み"
+            button.text = "ホーム画面に設置済み"
+            button.isEnabled = false
+            return
+        }
+
+        val directPinSupported =
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+                appWidgetManager.isRequestPinAppWidgetSupported
+
+        status.text = if (directPinSupported) {
+            "Widget：未設置"
+        } else {
+            "Widget：未設置（ランチャーから手動追加）"
+        }
+        button.text = "＋ Widgetをホーム画面に追加"
+        button.isEnabled = true
+        button.setOnClickListener {
+            requestHomeWidgetPin(
+                status = status,
+                button = button,
+            )
+        }
+    }
+
+    private fun requestHomeWidgetPin(
+        status: TextView,
+        button: Button,
+    ) {
+        val appWidgetManager = AppWidgetManager.getInstance(applicationContext)
+        val provider = ComponentName(
+            applicationContext,
+            WallpaperControlWidgetProvider::class.java,
+        )
+
+        if (appWidgetManager.getAppWidgetIds(provider).isNotEmpty()) {
+            status.text = "Widget：設置済み"
+            button.text = "ホーム画面に設置済み"
+            button.isEnabled = false
+            return
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+            appWidgetManager.isRequestPinAppWidgetSupported
+        ) {
+            val requestAccepted = appWidgetManager.requestPinAppWidget(
+                provider,
+                null,
+                null,
+            )
+            if (requestAccepted) {
+                status.text = "ホーム画面側で追加を確認してください"
+                button.isEnabled = false
+            } else {
+                showManualWidgetAddGuide()
+            }
+        } else {
+            showManualWidgetAddGuide()
+        }
+    }
+
+    private fun showManualWidgetAddGuide() {
+        toast("ホーム画面を長押し → ウィジェット → Wallpaper Fit から追加してください。")
     }
 
     private fun bindBlurSeekBar(
