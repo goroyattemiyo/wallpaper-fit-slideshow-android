@@ -345,7 +345,7 @@ class ImageEditorActivity : Activity() {
         )
 
         AlertDialog.Builder(this)
-            .setTitle("${targetLabel(editingTarget)}の背景色")
+            .setTitle("背景色")
             .setItems(names) { _, which ->
                 if (which < colors.size) {
                     preview.setBackgroundColorValue(colors[which])
