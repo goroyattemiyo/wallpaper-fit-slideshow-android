@@ -6,33 +6,36 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.CheckBox
+import android.widget.ImageView
 import android.widget.TextView
 import io.github.goroyattemiyo.wallpaperfitslideshow.R
-import io.github.goroyattemiyo.wallpaperfitslideshow.core.layout.LayoutMode
 import io.github.goroyattemiyo.wallpaperfitslideshow.model.WallpaperItem
+import io.github.goroyattemiyo.wallpaperfitslideshow.model.WallpaperTarget
 
 class WallpaperItemAdapter(
     context: Context,
-    private val onEnabledChanged: (String, Boolean) -> Unit,
+    private val onTargetChanged: (String, WallpaperTarget, Boolean) -> Unit,
 ) : BaseAdapter() {
     private val inflater = LayoutInflater.from(context)
+    private val thumbnailLoader = ThumbnailLoader(context)
     private var items: List<WallpaperItem> = emptyList()
-    private var currentItemId: String? = null
     private var selectedItemId: String? = null
 
     fun update(
         items: List<WallpaperItem>,
-        currentItemId: String?,
         selectedItemId: String?,
     ) {
         this.items = items.sortedBy { it.order }
-        this.currentItemId = currentItemId
         this.selectedItemId = selectedItemId
         notifyDataSetChanged()
     }
 
     fun indexOfItemId(itemId: String?): Int =
         items.indexOfFirst { it.id == itemId }
+
+    fun release() {
+        thumbnailLoader.release()
+    }
 
     override fun getCount(): Int = items.size
 
@@ -51,44 +54,56 @@ class WallpaperItemAdapter(
             false,
         )
         val holder = (view.tag as? Holder) ?: Holder(
-            enabledCheckBox = view.findViewById(R.id.slideshow_checkbox),
+            thumbnail = view.findViewById(R.id.item_thumbnail),
             titleText = view.findViewById(R.id.item_title),
-            detailText = view.findViewById(R.id.item_detail),
+            homeCheckBox = view.findViewById(R.id.home_checkbox),
+            lockCheckBox = view.findViewById(R.id.lock_checkbox),
         ).also { view.tag = it }
 
         val item = getItem(position)
-        holder.enabledCheckBox.setOnCheckedChangeListener(null)
-        holder.enabledCheckBox.isChecked = item.enabled
-        holder.enabledCheckBox.contentDescription =
-            "${item.displayName}をスライドショー対象にする"
-        holder.enabledCheckBox.setOnCheckedChangeListener { _, checked ->
-            if (checked != item.enabled) {
-                onEnabledChanged(item.id, checked)
-            }
-        }
+        view.isActivated = item.id == selectedItemId
 
         holder.titleText.text = item.displayName
-        holder.detailText.text = buildString {
-            append(
-                when (item.layout.mode) {
-                    LayoutMode.CONTAIN -> "全体表示"
-                    LayoutMode.CROP -> "Crop"
-                },
-            )
-            if (item.id == currentItemId) {
-                append(" ・ 現在の壁紙")
-            }
-            if (item.id == selectedItemId) {
-                append(" ・ 編集対象")
-            }
-        }
+        holder.titleText.contentDescription = item.displayName
+        thumbnailLoader.load(item.uri, holder.thumbnail)
+
+        bindTargetCheckBox(
+            checkBox = holder.homeCheckBox,
+            item = item,
+            target = WallpaperTarget.HOME,
+            checked = item.homeEnabled,
+        )
+        bindTargetCheckBox(
+            checkBox = holder.lockCheckBox,
+            item = item,
+            target = WallpaperTarget.LOCK,
+            checked = item.lockEnabled,
+        )
 
         return view
     }
 
+    private fun bindTargetCheckBox(
+        checkBox: CheckBox,
+        item: WallpaperItem,
+        target: WallpaperTarget,
+        checked: Boolean,
+    ) {
+        checkBox.setOnCheckedChangeListener(null)
+        checkBox.isChecked = checked
+        checkBox.contentDescription =
+            "${item.displayName}を${if (target == WallpaperTarget.HOME) "ホーム" else "ロック"}用にする"
+        checkBox.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked != checked) {
+                onTargetChanged(item.id, target, isChecked)
+            }
+        }
+    }
+
     private data class Holder(
-        val enabledCheckBox: CheckBox,
+        val thumbnail: ImageView,
         val titleText: TextView,
-        val detailText: TextView,
+        val homeCheckBox: CheckBox,
+        val lockCheckBox: CheckBox,
     )
 }

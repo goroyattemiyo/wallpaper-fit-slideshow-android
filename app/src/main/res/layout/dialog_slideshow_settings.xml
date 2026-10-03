@@ -11,7 +11,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="切替順" />
+        android:text="切替順（ホーム・ロック共通）" />
 
     <Spinner
         android:id="@+id/dialog_order_spinner"
@@ -22,18 +22,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
-        android:text="適用先" />
-
-    <Spinner
-        android:id="@+id/dialog_target_spinner"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:text="切替間隔" />
+        android:text="切替間隔（ホーム・ロック共通）" />
 
     <Spinner
         android:id="@+id/dialog_interval_spinner"
@@ -44,7 +33,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:text="10秒〜5分は高速モードです。通知を表示している間だけ動作し、端末の省電力制御で停止する場合があります。"
+        android:text="10秒〜5分は高速モードです。ホームとロックは各チェック対象から独立して次の画像を選びます。"
         android:textAppearance="?android:attr/textAppearanceSmall" />
 
 </LinearLayout>
