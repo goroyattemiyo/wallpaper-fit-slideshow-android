@@ -190,6 +190,10 @@ API / 端末が対応しない場合は、失敗を隠さずUIへ示す。
 - LockぼかしはWidgetから変更しない
 - Widgetの状態はスライドショー切替・編集保存・設定変更後に同期する
 - WidgetはRemoteViews対応Viewだけで構成し、ドラッグ式SeekBarには依存しない
+- 設定画面に「Widgetをホーム画面に追加」を置く
+- 対応ランチャーではrequestPinAppWidgetでシステムの追加確認を要求する
+- 非対応ランチャーではホーム画面長押しからの手動追加手順を案内する
+- Widget設置済みの場合は設定画面に状態を表示する
 
 ### FR-10 Invalid Source Handling
 
@@ -222,6 +226,17 @@ V1ではインターネット通信を必要としない。
 
 ### LW-06 Dependency Budget
 重量依存を安易に追加しない。
+
+### UI-01 Lightweight Visual Design
+
+- UIはstandard Android Viewsを維持する
+- Compose / Material3等の大型UI依存を追加しない
+- 画面背景、角丸カード、余白、文字階層、アクセント色を統一する
+- 画像一覧と操作領域を視覚的に分離する
+- 主要操作のみアクセント色を使い、削除は危険操作として区別する
+- 画像が主役で、装飾は最小限にする
+- Widgetも同じ視覚方針で整理する
+- 複雑なアニメーションや常時描画は追加しない
 
 ## 5. Rendering Pipeline
 
@@ -273,6 +288,7 @@ WorkManagerは端末再起動後も処理を再スケジュールできる仕組
 V1では行わない。
 
 - Live Wallpaper
+- 実ロック画面上での直接ピンチ / ドラッグ操作
 - 10秒未満の高頻度切替
 - ロック解除ごとの切替
 - 画面ONごとの切替

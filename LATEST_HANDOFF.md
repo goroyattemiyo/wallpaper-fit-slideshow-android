@@ -430,3 +430,46 @@ Static review completed after schema 6 + widget implementation:
 - unit/lint/assemble/install: NOT YET RUN
 - Redmi / HyperOS widget behavior: NOT YET VERIFIED
 - CI: NOT RUN
+
+
+## UI Polish + Widget Pin - 2026-10-03
+
+Implemented on `design/v1-foundation`.
+
+Visual direction:
+
+- standard Android Views only
+- no Compose / Material3 dependency added
+- shared light app background + white rounded cards
+- one accent blue for primary actions
+- softer selected-item detail card
+- list row activated state + rounded thumbnail
+- editor sections visually separated while keeping gesture-first preview
+- settings split into Slideshow / Wallpaper Display / Home Widget sections
+- widget restyled as compact dark control card
+- no animation framework or polling added
+
+Widget discovery:
+
+- Settings now contains "Widgetをホーム画面に追加"
+- existing widget instances are detected with AppWidgetManager
+- API 26+ supported launchers use requestPinAppWidget
+- unsupported launchers receive manual long-press widget-picker guidance
+- already-installed widget state is shown and the add button is disabled
+
+Lock-screen direct gesture decision:
+
+- experimental Live Wallpaper PoC was kept off the main branch
+- Redmi / HyperOS real-device result reported: no Lock-only picker item and actual lock screen did not respond to the pinch gesture
+- direct lock-screen pinch/drag is therefore not a V1 feature
+- Lock image position/scale remains app-editor functionality
+- Home quick adjustment remains Widget functionality
+
+Verification status:
+
+- static R.id review: PASS
+- MainActivity brace/static review: PASS
+- requestPinAppWidget API is guarded behind API 26 check
+- Unit/Lint/assemble/install after UI polish: NOT YET RUN
+- Redmi visual/widget pin verification: NOT YET RUN
+- CI: NOT RUN

@@ -438,3 +438,41 @@ Add the Wallpaper Fit control widget to the launcher.
 - [ ] Widget state follows automatic slideshow changes
 - [ ] Repeated quick taps do not crash or corrupt settings
 - [ ] Large image widget action completes without ANR
+
+
+## 26. Lightweight UI Polish + Widget Pin
+
+Main screen:
+
+- [ ] App background/card hierarchy is visually clear
+- [ ] Add-image controls remain easy to reach
+- [ ] Wallpaper list remains the largest usable area
+- [ ] Selected row detail card is visually distinct without covering important controls
+- [ ] Start is visually primary; Stop/Next remain secondary
+- [ ] Delete is visually distinguishable from normal actions
+- [ ] Long filenames and Home/Lock checkboxes still fit acceptably on Redmi width
+- [ ] No screen requires horizontal scrolling
+
+Editor:
+
+- [ ] Home/Lock selector, preview and action area are visually separated
+- [ ] Preview remains large enough for direct drag/pinch
+- [ ] All existing gesture behavior remains unchanged
+- [ ] Bottom actions remain visible on Redmi without unwanted clipping
+
+Settings:
+
+- [ ] Sections for slideshow / wallpaper display / Home Widget are easy to distinguish
+- [ ] Home and Lock blur controls remain independent
+- [ ] "Widgetをホーム画面に追加" is visible
+- [ ] If launcher supports pinning, system widget-add confirmation is shown
+- [ ] If unsupported, manual add guidance is shown
+- [ ] If a widget instance already exists, Settings shows "設置済み"
+
+Widget:
+
+- [ ] New dark rounded design fits without clipping
+- [ ] Filename remains readable
+- [ ] Zoom - / + / RESET are tappable
+- [ ] Blur - / + are tappable
+- [ ] Widget still has no periodic update/polling
