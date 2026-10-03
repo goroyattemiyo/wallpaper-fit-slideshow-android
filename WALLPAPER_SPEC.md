@@ -80,10 +80,12 @@
 ### FR-04C Wallpaper Blur
 
 - 背景ぼかしとは別に、完成する壁紙全体へぼかしを適用できる
-- ぼかし量は0〜30
-- 0はOFF
-- Home / Lockごとに独立保存する
-- プレビューと実レンダリングで同じ処理を使用する
+- 画像ごとの設定ではなくアプリ全体設定とする
+- Home用とLock用の2値を独立して持つ
+- ぼかし量は0〜30、0はOFF
+- メインの「設定」ダイアログから変更する
+- Home編集中のプレビューはHome用ぼかし、Lock編集中はLock用ぼかしを参照する
+- 実レンダリングも対象ごとのグローバル値を使用する
 - 画像と余白背景を合成した後に全体へ適用する
 - 大解像度Bitmapをそのまま多重展開せず、縮小ワークBitmapで処理する
 - 主用途はホーム画面のアイコン/文字の視認性向上
@@ -110,7 +112,6 @@
 - background mode
 - blur radius
 - background image alpha
-- wallpaper blur radius
 
 ピクセル絶対値だけに依存せず、端末サイズ変更に耐えやすい正規化値を優先する。
 旧schemaの単一 enabled / layout はmigration時にHome / Lock双方へコピーする。
@@ -177,6 +178,18 @@ API / 端末が対応しない場合は、失敗を隠さずUIへ示す。
 - Next nowはHome / Lockそれぞれの対象リストから独立して次画像を適用する
 - currentHomeItemId / currentLockItemIdを別々に保持する
 - last success / last error
+
+### FR-09B Home Screen Widget
+
+- Androidホーム画面へコントロールWidgetを追加できる
+- 現在のHome壁紙ファイル名を表示する
+- 現在のHome画像だけをZoom - / Zoom + で約10%刻み調整する
+- Zoom 100%で現在のHome画像のuserScaleを1.0へ戻す
+- Home全体ぼかしをBlur - / Blur + で1段階ずつ調整する
+- Widget操作後は現在のHome壁紙へ即時再適用する
+- LockぼかしはWidgetから変更しない
+- Widgetの状態はスライドショー切替・編集保存・設定変更後に同期する
+- WidgetはRemoteViews対応Viewだけで構成し、ドラッグ式SeekBarには依存しない
 
 ### FR-10 Invalid Source Handling
 

@@ -404,19 +404,37 @@ Slideshow:
 - [ ] Disabling a currently displayed image does not falsely erase its "current" indication before the next change
 
 
-## 24. Whole Wallpaper Blur
+## 24. Global Home / Lock Wallpaper Blur
 
 Use an image where launcher icons are hard to read.
 
-- [ ] Open Home editor and tap "壁紙ぼかし"
-- [ ] Radius 0 shows the unblurred wallpaper
-- [ ] Radius around 10 visibly softens the whole wallpaper
-- [ ] Radius 30 is stronger than radius 10
-- [ ] Foreground image and unused-area background are both blurred together
-- [ ] Preview remains responsive while changing blur
-- [ ] Save/reopen restores the Home blur radius
-- [ ] Set Home blur > 0 and Lock blur = 0; switching editor target preserves both independently
-- [ ] Apply Home and confirm launcher icons/text are easier to distinguish as intended
-- [ ] Apply Lock and confirm Lock remains unblurred when its radius is 0
-- [ ] Actual wallpaper blur is visually close to preview
+- [ ] Open main Settings
+- [ ] Home blur and Lock blur are separate controls
+- [ ] Home blur 0 is unblurred
+- [ ] Home blur 10 visibly softens Home wallpaper
+- [ ] Home blur 30 is stronger than 10
+- [ ] Lock blur can remain 0 while Home blur is non-zero
+- [ ] Saving Settings reapplies the current Home/Lock wallpapers
+- [ ] Home editor preview reflects Home global blur
+- [ ] Lock editor preview reflects Lock global blur
+- [ ] Per-image detail card does not claim wallpaper blur is image-specific
+- [ ] App restart restores both global blur values
 - [ ] Large source images do not cause OOM or crash during blur/apply
+
+## 25. Home Screen Control Widget
+
+Add the Wallpaper Fit control widget to the launcher.
+
+- [ ] Widget can be added on Redmi / HyperOS
+- [ ] Widget shows the current Home image filename
+- [ ] Widget shows current Zoom and Home Blur
+- [ ] Zoom + changes only the current Home image
+- [ ] Zoom - changes only the current Home image
+- [ ] 100% returns current Home image userScale to 1.0
+- [ ] Blur + increments global Home blur
+- [ ] Blur - decrements global Home blur and stops at 0
+- [ ] Lock blur value is not changed by widget actions
+- [ ] Each widget action reapplies Home wallpaper
+- [ ] Widget state follows automatic slideshow changes
+- [ ] Repeated quick taps do not crash or corrupt settings
+- [ ] Large image widget action completes without ANR

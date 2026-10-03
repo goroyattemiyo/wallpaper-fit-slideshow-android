@@ -298,6 +298,23 @@ Rules:
 - `WallpaperBlurRenderer`: 合成済み壁紙のvisible regionを縮小work bitmapへ描画し、blur後に戻す
 - 最大work幅: 360px
 - preview / final renderer双方で同じWallpaperBlurRendererを使用
-- Home / LockそれぞれのWallpaperLayoutStateにwallpaperBlurRadiusを保存
+- Home / Lockのwallpaper blurはAppSettingsのグローバル値として保存
 
 全解像度に複数のIntArrayを確保しないことで、OOMリスクを抑える。
+
+
+### WallpaperControlWidgetProvider
+
+ホーム画面から現在のHome壁紙を簡易調整するApp Widget。
+
+- traditional Views / RemoteViewsで構成
+- 現在のHome画像名・Zoom状態・Home Blur値を表示
+- Zoom +/- は現在のHome画像のhomeLayoutだけを変更
+- Blur +/- はAppSettings.homeWallpaperBlurRadiusを変更
+- Lock側のぼかしはWidgetから変更しない
+- 操作は明示的PendingIntent broadcast
+- BroadcastReceiver本体をブロックしないようgoAsync + single-thread executorで処理
+- operation完了後にAppWidgetManagerで表示更新
+- slideshow / direct apply後もwidget表示を同期
+
+App WidgetのRemoteViewsは利用可能Viewに制限があるため、V1の調整UIはボタン式とする。

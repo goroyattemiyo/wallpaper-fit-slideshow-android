@@ -364,3 +364,48 @@ Verification status for this latest batch:
 - unit/lint/assemble/install: NOT YET RUN after these changes
 - real-device blur quality/performance: NOT YET VERIFIED
 - CI: NOT RUN
+
+
+## Global Blur + Home Widget Superseding Update - 2026-10-03
+
+This supersedes the earlier per-image whole-wallpaper-blur design.
+
+Current source of truth:
+
+- settings schema: 6
+- whole-wallpaper blur is NOT stored per image
+- AppSettings.homeWallpaperBlurRadius: 0..30
+- AppSettings.lockWallpaperBlurRadius: 0..30
+- Home and Lock blur are independent global settings
+- main Settings dialog owns both blur controls
+- ImageEditor has no wallpaper-blur control
+- editor preview reads the global blur for the currently edited target
+- Background blur remains per-image/per-target layout state
+- WallpaperRenderer receives whole-wallpaper blur explicitly from AppSettings
+
+Home screen widget added:
+
+- current Home filename
+- Zoom - / +
+- Zoom 100%
+- Home Blur - / +
+- Zoom modifies only currentHomeItemId.homeLayout
+- Blur modifies only global Home blur
+- widget action reapplies current Home wallpaper
+- widget updates after slideshow/direct apply/editor save/settings refresh
+- widget uses RemoteViews buttons + PendingIntent broadcasts
+- custom widget broadcast work uses goAsync and a single-thread executor
+
+Official Android widget guidance checked:
+
+- RemoteViews-based widgets support only a restricted set of views
+- user interactions can be delivered with PendingIntent
+- AppWidgetManager can update widgets from the app process
+- BroadcastReceiver work should avoid blocking the main thread; goAsync is used
+
+Verification status:
+
+- static review in progress / latest batch not locally built yet
+- Unit/Lint/assemble/install: NOT YET RUN for schema 6 + widget
+- Redmi widget behavior: NOT YET VERIFIED
+- CI: NOT RUN

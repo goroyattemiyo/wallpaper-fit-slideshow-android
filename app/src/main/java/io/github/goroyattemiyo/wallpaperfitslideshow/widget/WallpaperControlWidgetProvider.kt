@@ -144,7 +144,8 @@ class WallpaperControlWidgetProvider : AppWidgetProvider() {
                 context,
                 requestCode,
                 Intent(context, WallpaperControlWidgetProvider::class.java)
-                    .setAction(action),
+                    .setAction(action)
+                    .addFlags(Intent.FLAG_RECEIVER_FOREGROUND),
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
             )
 
