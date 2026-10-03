@@ -138,7 +138,7 @@ class WallpaperOperationService(
                 )
             } catch (exception: WallpaperApplier.ApplyException) {
                 return TargetApplyResult.Failed(
-                    exception.message ?: "壁紙を適用できませんでした.",
+                    exception.message ?: "壁紙を適用できませんでした。",
                 )
             } finally {
                 recycle(rendered)

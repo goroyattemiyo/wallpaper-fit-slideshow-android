@@ -2,7 +2,9 @@ package io.github.goroyattemiyo.wallpaperfitslideshow.core
 
 import io.github.goroyattemiyo.wallpaperfitslideshow.model.OrderMode
 import io.github.goroyattemiyo.wallpaperfitslideshow.model.WallpaperItem
+import io.github.goroyattemiyo.wallpaperfitslideshow.model.WallpaperLayoutState
 import io.github.goroyattemiyo.wallpaperfitslideshow.model.WallpaperTarget
+import io.github.goroyattemiyo.wallpaperfitslideshow.core.layout.LayoutMode
 import kotlin.random.Random
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
@@ -111,6 +113,23 @@ class SlideshowSelectorTest {
                 WallpaperTarget.HOME,
             )?.id,
         )
+    }
+
+    @Test
+    fun homeAndLockStateAreIndependent() {
+        val item = items.first().copy(
+            homeEnabled = true,
+            lockEnabled = false,
+            homeLayout = WallpaperLayoutState(mode = LayoutMode.CROP, userScale = 1.5),
+            lockLayout = WallpaperLayoutState(mode = LayoutMode.CONTAIN, userScale = 1.0),
+        )
+
+        assertEquals(true, item.isEnabledFor(WallpaperTarget.HOME))
+        assertEquals(false, item.isEnabledFor(WallpaperTarget.LOCK))
+        assertEquals(LayoutMode.CROP, item.layoutFor(WallpaperTarget.HOME).mode)
+        assertEquals(LayoutMode.CONTAIN, item.layoutFor(WallpaperTarget.LOCK).mode)
+        assertEquals(1.5, item.layoutFor(WallpaperTarget.HOME).userScale, 0.0)
+        assertEquals(1.0, item.layoutFor(WallpaperTarget.LOCK).userScale, 0.0)
     }
 
     @Test
