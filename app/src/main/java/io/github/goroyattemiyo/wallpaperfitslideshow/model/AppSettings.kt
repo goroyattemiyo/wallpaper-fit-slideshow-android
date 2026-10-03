@@ -39,23 +39,46 @@ data class WallpaperItem(
     val uri: String,
     val displayName: String,
     val order: Int,
-    val enabled: Boolean = true,
-    val layout: WallpaperLayoutState = WallpaperLayoutState(),
-)
+    val homeEnabled: Boolean = true,
+    val lockEnabled: Boolean = true,
+    val homeLayout: WallpaperLayoutState = WallpaperLayoutState(),
+    val lockLayout: WallpaperLayoutState = WallpaperLayoutState(),
+) {
+    fun isEnabledFor(target: WallpaperTarget): Boolean =
+        when (target) {
+            WallpaperTarget.HOME -> homeEnabled
+            WallpaperTarget.LOCK -> lockEnabled
+            WallpaperTarget.BOTH -> homeEnabled || lockEnabled
+        }
+
+    fun layoutFor(target: WallpaperTarget): WallpaperLayoutState =
+        when (target) {
+            WallpaperTarget.HOME -> homeLayout
+            WallpaperTarget.LOCK -> lockLayout
+            WallpaperTarget.BOTH -> homeLayout
+        }
+}
 
 data class AppSettings(
     val schemaVersion: Int = CURRENT_SCHEMA_VERSION,
     val slideshowEnabled: Boolean = false,
     val intervalSeconds: Long = DEFAULT_INTERVAL_SECONDS,
     val orderMode: OrderMode = OrderMode.SEQUENTIAL,
-    val target: WallpaperTarget = WallpaperTarget.BOTH,
-    val currentItemId: String? = null,
+    val currentHomeItemId: String? = null,
+    val currentLockItemId: String? = null,
     val lastSuccessEpochMillis: Long? = null,
     val lastError: String? = null,
     val items: List<WallpaperItem> = emptyList(),
 ) {
+    fun currentItemIdFor(target: WallpaperTarget): String? =
+        when (target) {
+            WallpaperTarget.HOME -> currentHomeItemId
+            WallpaperTarget.LOCK -> currentLockItemId
+            WallpaperTarget.BOTH -> null
+        }
+
     companion object {
-        const val CURRENT_SCHEMA_VERSION = 3
+        const val CURRENT_SCHEMA_VERSION = 4
         const val DEFAULT_INTERVAL_SECONDS = 3600L
         const val MIN_INTERVAL_SECONDS = 10L
         const val WORK_MANAGER_MIN_INTERVAL_SECONDS = 15L * 60L

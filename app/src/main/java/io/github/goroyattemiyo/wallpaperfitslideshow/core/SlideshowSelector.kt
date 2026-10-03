@@ -2,6 +2,7 @@ package io.github.goroyattemiyo.wallpaperfitslideshow.core
 
 import io.github.goroyattemiyo.wallpaperfitslideshow.model.OrderMode
 import io.github.goroyattemiyo.wallpaperfitslideshow.model.WallpaperItem
+import io.github.goroyattemiyo.wallpaperfitslideshow.model.WallpaperTarget
 import kotlin.random.Random
 
 object SlideshowSelector {
@@ -9,12 +10,14 @@ object SlideshowSelector {
         items: List<WallpaperItem>,
         currentItemId: String?,
         orderMode: OrderMode,
+        target: WallpaperTarget,
         random: Random = Random.Default,
     ): WallpaperItem? =
         candidates(
             items = items,
             currentItemId = currentItemId,
             orderMode = orderMode,
+            target = target,
             random = random,
         ).firstOrNull()
 
@@ -22,11 +25,16 @@ object SlideshowSelector {
         items: List<WallpaperItem>,
         currentItemId: String?,
         orderMode: OrderMode,
+        target: WallpaperTarget,
         random: Random = Random.Default,
     ): List<WallpaperItem> {
+        require(target != WallpaperTarget.BOTH) {
+            "Slideshow target must be HOME or LOCK."
+        }
+
         val enabled = items
             .asSequence()
-            .filter { it.enabled }
+            .filter { it.isEnabledFor(target) }
             .sortedBy { it.order }
             .toList()
 

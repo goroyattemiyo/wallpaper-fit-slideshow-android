@@ -11,6 +11,7 @@ import io.github.goroyattemiyo.wallpaperfitslideshow.core.layout.LayoutRequest
 import io.github.goroyattemiyo.wallpaperfitslideshow.core.layout.LayoutTransform
 import io.github.goroyattemiyo.wallpaperfitslideshow.core.render.WallpaperGeometry
 import io.github.goroyattemiyo.wallpaperfitslideshow.model.WallpaperItem
+import io.github.goroyattemiyo.wallpaperfitslideshow.model.WallpaperLayoutState
 import java.io.IOException
 import kotlin.math.ceil
 
@@ -27,6 +28,7 @@ class WallpaperRenderer(
     @Throws(RenderException::class)
     fun render(
         item: WallpaperItem,
+        layout: WallpaperLayoutState,
         geometry: WallpaperGeometry,
     ): RenderedWallpaper {
         val info = try {
@@ -44,10 +46,10 @@ class WallpaperRenderer(
                 sourceHeight = info.logicalHeight,
                 targetWidth = geometry.visibleWidth,
                 targetHeight = geometry.visibleHeight,
-                mode = item.layout.mode,
-                userScale = item.layout.userScale,
-                offsetXNormalized = item.layout.offsetXNormalized,
-                offsetYNormalized = item.layout.offsetYNormalized,
+                mode = layout.mode,
+                userScale = layout.userScale,
+                offsetXNormalized = layout.offsetXNormalized,
+                offsetYNormalized = layout.offsetYNormalized,
             ),
         )
 
@@ -73,7 +75,7 @@ class WallpaperRenderer(
             renderToTarget(
                 source = loaded.bitmap,
                 layoutTransform = transform,
-                layout = item.layout,
+                layout = layout,
                 geometry = geometry,
             )
         } catch (outOfMemory: OutOfMemoryError) {

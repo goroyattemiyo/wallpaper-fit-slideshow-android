@@ -2,6 +2,7 @@ package io.github.goroyattemiyo.wallpaperfitslideshow.core
 
 import io.github.goroyattemiyo.wallpaperfitslideshow.model.OrderMode
 import io.github.goroyattemiyo.wallpaperfitslideshow.model.WallpaperItem
+import io.github.goroyattemiyo.wallpaperfitslideshow.model.WallpaperTarget
 import kotlin.random.Random
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
@@ -21,8 +22,8 @@ class SlideshowSelectorTest {
             items = items,
             currentItemId = null,
             orderMode = OrderMode.SEQUENTIAL,
+            target = WallpaperTarget.HOME,
         )
-
         assertEquals("a", result?.id)
     }
 
@@ -30,11 +31,21 @@ class SlideshowSelectorTest {
     fun sequentialAdvancesAndWraps() {
         assertEquals(
             "b",
-            SlideshowSelector.selectNext(items, "a", OrderMode.SEQUENTIAL)?.id,
+            SlideshowSelector.selectNext(
+                items,
+                "a",
+                OrderMode.SEQUENTIAL,
+                WallpaperTarget.HOME,
+            )?.id,
         )
         assertEquals(
             "a",
-            SlideshowSelector.selectNext(items, "c", OrderMode.SEQUENTIAL)?.id,
+            SlideshowSelector.selectNext(
+                items,
+                "c",
+                OrderMode.SEQUENTIAL,
+                WallpaperTarget.HOME,
+            )?.id,
         )
     }
 
@@ -44,20 +55,34 @@ class SlideshowSelectorTest {
             items = items,
             currentItemId = "b",
             orderMode = OrderMode.SEQUENTIAL,
+            target = WallpaperTarget.LOCK,
         ).map { it.id }
-
         assertEquals(listOf("c", "a"), ids)
     }
 
     @Test
-    fun disabledItemsAreSkipped() {
-        val result = SlideshowSelector.selectNext(
-            items = items.map { if (it.id == "b") it.copy(enabled = false) else it },
-            currentItemId = "a",
-            orderMode = OrderMode.SEQUENTIAL,
+    fun homeDisabledItemIsSkippedOnlyForHome() {
+        val modified = items.map {
+            if (it.id == "b") it.copy(homeEnabled = false, lockEnabled = true) else it
+        }
+        assertEquals(
+            "c",
+            SlideshowSelector.selectNext(
+                modified,
+                "a",
+                OrderMode.SEQUENTIAL,
+                WallpaperTarget.HOME,
+            )?.id,
         )
-
-        assertEquals("c", result?.id)
+        assertEquals(
+            "b",
+            SlideshowSelector.selectNext(
+                modified,
+                "a",
+                OrderMode.SEQUENTIAL,
+                WallpaperTarget.LOCK,
+            )?.id,
+        )
     }
 
     @Test
@@ -67,9 +92,9 @@ class SlideshowSelectorTest {
                 items = items,
                 currentItemId = "b",
                 orderMode = OrderMode.RANDOM,
+                target = WallpaperTarget.HOME,
                 random = Random(seed),
             )
-
             assertNotEquals("b", result?.id)
         }
     }
@@ -83,18 +108,19 @@ class SlideshowSelectorTest {
                 only,
                 "a",
                 OrderMode.SEQUENTIAL,
+                WallpaperTarget.HOME,
             )?.id,
         )
     }
 
     @Test
-    fun emptyEnabledPlaylistReturnsNull() {
+    fun emptyTargetPlaylistReturnsNull() {
         val result = SlideshowSelector.selectNext(
-            items = items.map { it.copy(enabled = false) },
+            items = items.map { it.copy(homeEnabled = false) },
             currentItemId = null,
             orderMode = OrderMode.SEQUENTIAL,
+            target = WallpaperTarget.HOME,
         )
-
         assertNull(result)
     }
 }

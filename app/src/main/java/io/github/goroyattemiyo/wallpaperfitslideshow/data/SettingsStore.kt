@@ -18,7 +18,6 @@ class SettingsStore(context: Context) {
     private val atomicFile = AtomicFile(File(context.filesDir, FILE_NAME))
 
     fun load(): AppSettings = synchronized(FILE_LOCK) {
-
         if (!atomicFile.baseFile.exists()) {
             return AppSettings()
         }
@@ -33,7 +32,6 @@ class SettingsStore(context: Context) {
     }
 
     fun save(settings: AppSettings) = synchronized(FILE_LOCK) {
-
         val bytes = encode(settings).toString().toByteArray(StandardCharsets.UTF_8)
         val output = atomicFile.startWrite()
         try {
@@ -64,19 +62,10 @@ class SettingsStore(context: Context) {
                         .put("uri", item.uri)
                         .put("displayName", item.displayName)
                         .put("order", item.order)
-                        .put("enabled", item.enabled)
-                        .put(
-                            "layout",
-                            JSONObject()
-                                .put("mode", item.layout.mode.name)
-                                .put("userScale", item.layout.userScale)
-                                .put("offsetXNormalized", item.layout.offsetXNormalized)
-                                .put("offsetYNormalized", item.layout.offsetYNormalized)
-                                .put("backgroundColor", item.layout.backgroundColor)
-                                .put("backgroundMode", item.layout.backgroundMode.name)
-                                .put("blurRadius", item.layout.blurRadius)
-                                .put("backgroundImageAlpha", item.layout.backgroundImageAlpha),
-                        ),
+                        .put("homeEnabled", item.homeEnabled)
+                        .put("lockEnabled", item.lockEnabled)
+                        .put("homeLayout", encodeLayout(item.homeLayout))
+                        .put("lockLayout", encodeLayout(item.lockLayout)),
                 )
             }
 
@@ -88,12 +77,23 @@ class SettingsStore(context: Context) {
                 settings.intervalSeconds.coerceAtLeast(AppSettings.MIN_INTERVAL_SECONDS),
             )
             .put("orderMode", settings.orderMode.name)
-            .put("target", settings.target.name)
-            .put("currentItemId", settings.currentItemId ?: JSONObject.NULL)
+            .put("currentHomeItemId", settings.currentHomeItemId ?: JSONObject.NULL)
+            .put("currentLockItemId", settings.currentLockItemId ?: JSONObject.NULL)
             .put("lastSuccessEpochMillis", settings.lastSuccessEpochMillis ?: JSONObject.NULL)
             .put("lastError", settings.lastError ?: JSONObject.NULL)
             .put("items", items)
     }
+
+    private fun encodeLayout(layout: WallpaperLayoutState): JSONObject =
+        JSONObject()
+            .put("mode", layout.mode.name)
+            .put("userScale", layout.userScale)
+            .put("offsetXNormalized", layout.offsetXNormalized)
+            .put("offsetYNormalized", layout.offsetYNormalized)
+            .put("backgroundColor", layout.backgroundColor)
+            .put("backgroundMode", layout.backgroundMode.name)
+            .put("blurRadius", layout.blurRadius)
+            .put("backgroundImageAlpha", layout.backgroundImageAlpha)
 
     private fun decode(root: JSONObject): AppSettings {
         val schemaVersion = root.optInt("schemaVersion", 1)
@@ -111,44 +111,14 @@ class SettingsStore(context: Context) {
                     continue
                 }
 
-                val layoutJson = objectValue.optJSONObject("layout") ?: JSONObject()
-                val layout = WallpaperLayoutState(
-                    mode = enumOrDefault(
-                        layoutJson.optString("mode"),
-                        LayoutMode.CONTAIN,
-                    ),
-                    userScale = layoutJson
-                        .optDouble("userScale", 1.0)
-                        .takeIf { it.isFinite() && it > 0.0 }
-                        ?: 1.0,
-                    offsetXNormalized = layoutJson
-                        .optDouble("offsetXNormalized", 0.0)
-                        .takeIf { it.isFinite() }
-                        ?.coerceIn(-1.0, 1.0)
-                        ?: 0.0,
-                    offsetYNormalized = layoutJson
-                        .optDouble("offsetYNormalized", 0.0)
-                        .takeIf { it.isFinite() }
-                        ?.coerceIn(-1.0, 1.0)
-                        ?: 0.0,
-                    backgroundColor = layoutJson.optInt(
-                        "backgroundColor",
-                        0xFF000000.toInt(),
-                    ),
-                    backgroundMode = enumOrDefault(
-                        layoutJson.optString("backgroundMode"),
-                        BackgroundMode.SOLID,
-                    ),
-                    blurRadius = layoutJson
-                        .optInt(
-                            "blurRadius",
-                            WallpaperLayoutState.DEFAULT_BLUR_RADIUS,
-                        )
-                        .coerceIn(0, WallpaperLayoutState.MAX_BLUR_RADIUS),
-                    backgroundImageAlpha = layoutJson
-                        .optInt("backgroundImageAlpha", 255)
-                        .coerceIn(0, 255),
-                )
+                val legacyEnabled = objectValue.optBoolean("enabled", true)
+                val legacyLayout = objectValue.optJSONObject("layout")
+                val homeLayoutJson = objectValue.optJSONObject("homeLayout")
+                    ?: legacyLayout
+                    ?: JSONObject()
+                val lockLayoutJson = objectValue.optJSONObject("lockLayout")
+                    ?: legacyLayout
+                    ?: JSONObject()
 
                 add(
                     WallpaperItem(
@@ -159,15 +129,48 @@ class SettingsStore(context: Context) {
                             .takeIf { it.isNotBlank() }
                             ?: "画像 ${index + 1}",
                         order = objectValue.optInt("order", index),
-                        enabled = objectValue.optBoolean("enabled", true),
-                        layout = layout,
+                        homeEnabled = if (objectValue.has("homeEnabled")) {
+                            objectValue.optBoolean("homeEnabled", true)
+                        } else {
+                            legacyEnabled
+                        },
+                        lockEnabled = if (objectValue.has("lockEnabled")) {
+                            objectValue.optBoolean("lockEnabled", true)
+                        } else {
+                            legacyEnabled
+                        },
+                        homeLayout = decodeLayout(homeLayoutJson),
+                        lockLayout = decodeLayout(lockLayoutJson),
                     ),
                 )
             }
         }.sortedBy { it.order }
 
+        val legacyCurrentItemId = root.optNullableString("currentItemId")
+        val legacyTarget = enumOrDefault(
+            root.optString("target"),
+            WallpaperTarget.BOTH,
+        )
+
+        val currentHomeItemId = if (root.has("currentHomeItemId")) {
+            root.optNullableString("currentHomeItemId")
+        } else {
+            legacyCurrentItemId.takeIf {
+                legacyTarget == WallpaperTarget.HOME ||
+                    legacyTarget == WallpaperTarget.BOTH
+            }
+        }
+        val currentLockItemId = if (root.has("currentLockItemId")) {
+            root.optNullableString("currentLockItemId")
+        } else {
+            legacyCurrentItemId.takeIf {
+                legacyTarget == WallpaperTarget.LOCK ||
+                    legacyTarget == WallpaperTarget.BOTH
+            }
+        }
+
         return AppSettings(
-            schemaVersion = schemaVersion,
+            schemaVersion = AppSettings.CURRENT_SCHEMA_VERSION,
             slideshowEnabled = root.optBoolean("slideshowEnabled", false),
             intervalSeconds = (
                 if (root.has("intervalSeconds")) {
@@ -183,16 +186,52 @@ class SettingsStore(context: Context) {
                 root.optString("orderMode"),
                 OrderMode.SEQUENTIAL,
             ),
-            target = enumOrDefault(
-                root.optString("target"),
-                WallpaperTarget.BOTH,
-            ),
-            currentItemId = root.optNullableString("currentItemId"),
+            currentHomeItemId = currentHomeItemId,
+            currentLockItemId = currentLockItemId,
             lastSuccessEpochMillis = root.optNullableLong("lastSuccessEpochMillis"),
             lastError = root.optNullableString("lastError"),
             items = items,
         )
     }
+
+    private fun decodeLayout(layoutJson: JSONObject): WallpaperLayoutState =
+        WallpaperLayoutState(
+            mode = enumOrDefault(
+                layoutJson.optString("mode"),
+                LayoutMode.CONTAIN,
+            ),
+            userScale = layoutJson
+                .optDouble("userScale", 1.0)
+                .takeIf { it.isFinite() && it > 0.0 }
+                ?: 1.0,
+            offsetXNormalized = layoutJson
+                .optDouble("offsetXNormalized", 0.0)
+                .takeIf { it.isFinite() }
+                ?.coerceIn(-1.0, 1.0)
+                ?: 0.0,
+            offsetYNormalized = layoutJson
+                .optDouble("offsetYNormalized", 0.0)
+                .takeIf { it.isFinite() }
+                ?.coerceIn(-1.0, 1.0)
+                ?: 0.0,
+            backgroundColor = layoutJson.optInt(
+                "backgroundColor",
+                0xFF000000.toInt(),
+            ),
+            backgroundMode = enumOrDefault(
+                layoutJson.optString("backgroundMode"),
+                BackgroundMode.SOLID,
+            ),
+            blurRadius = layoutJson
+                .optInt(
+                    "blurRadius",
+                    WallpaperLayoutState.DEFAULT_BLUR_RADIUS,
+                )
+                .coerceIn(0, WallpaperLayoutState.MAX_BLUR_RADIUS),
+            backgroundImageAlpha = layoutJson
+                .optInt("backgroundImageAlpha", 255)
+                .coerceIn(0, 255),
+        )
 
     private inline fun <reified T : Enum<T>> enumOrDefault(
         value: String,
