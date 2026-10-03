@@ -17,7 +17,7 @@
 
     <TextView
         android:id="@+id/status_text"
-        style="@style/Text.Helper"
+        style="@style/AppTextHelper"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
@@ -32,13 +32,13 @@
         android:padding="10dp">
 
         <TextView
-            style="@style/Text.SectionTitle"
+            style="@style/AppTextSectionTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="画像を追加" />
 
         <TextView
-            style="@style/Text.Helper"
+            style="@style/AppTextHelper"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
@@ -52,7 +52,7 @@
 
             <Button
                 android:id="@+id/add_images_button"
-                style="@style/Button.Secondary"
+                style="@style/AppButtonSecondary"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="4dp"
@@ -61,7 +61,7 @@
 
             <Button
                 android:id="@+id/add_folder_button"
-                style="@style/Button.Secondary"
+                style="@style/AppButtonSecondary"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="2dp"
@@ -71,7 +71,7 @@
 
             <Button
                 android:id="@+id/add_zip_button"
-                style="@style/Button.Secondary"
+                style="@style/AppButtonSecondary"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="4dp"
@@ -102,13 +102,13 @@
                 android:orientation="vertical">
 
                 <TextView
-                    style="@style/Text.SectionTitle"
+                    style="@style/AppTextSectionTitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="壁紙リスト" />
 
                 <TextView
-                    style="@style/Text.Helper"
+                    style="@style/AppTextHelper"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="行タップで詳細 / Home・Lockを個別選択" />
@@ -116,7 +116,7 @@
 
             <Button
                 android:id="@+id/select_all_button"
-                style="@style/Button.Secondary"
+                style="@style/AppButtonSecondary"
                 android:layout_width="wrap_content"
                 android:layout_height="40dp"
                 android:minHeight="0dp"
@@ -125,7 +125,7 @@
 
             <Button
                 android:id="@+id/clear_all_button"
-                style="@style/Button.Secondary"
+                style="@style/AppButtonSecondary"
                 android:layout_width="wrap_content"
                 android:layout_height="40dp"
                 android:layout_marginStart="4dp"
@@ -167,7 +167,7 @@
 
         <TextView
             android:id="@+id/detail_state"
-            style="@style/Text.Helper"
+            style="@style/AppTextHelper"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="3dp" />
@@ -180,7 +180,7 @@
 
             <Button
                 android:id="@+id/edit_image_button"
-                style="@style/Button.Primary"
+                style="@style/AppButtonPrimary"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="4dp"
@@ -189,7 +189,7 @@
 
             <Button
                 android:id="@+id/move_up_button"
-                style="@style/Button.Secondary"
+                style="@style/AppButtonSecondary"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="2dp"
@@ -199,7 +199,7 @@
 
             <Button
                 android:id="@+id/move_down_button"
-                style="@style/Button.Secondary"
+                style="@style/AppButtonSecondary"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="2dp"
@@ -209,7 +209,7 @@
 
             <Button
                 android:id="@+id/remove_image_button"
-                style="@style/Button.Danger"
+                style="@style/AppButtonDanger"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="4dp"
@@ -239,14 +239,14 @@
                 android:orientation="vertical">
 
                 <TextView
-                    style="@style/Text.SectionTitle"
+                    style="@style/AppTextSectionTitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="スライドショー" />
 
                 <TextView
                     android:id="@+id/slideshow_settings_summary"
-                    style="@style/Text.Helper"
+                    style="@style/AppTextHelper"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="順番 / 1時間" />
@@ -254,7 +254,7 @@
 
             <Button
                 android:id="@+id/slideshow_settings_button"
-                style="@style/Button.Secondary"
+                style="@style/AppButtonSecondary"
                 android:layout_width="wrap_content"
                 android:layout_height="40dp"
                 android:minHeight="0dp"
@@ -269,7 +269,7 @@
 
             <Button
                 android:id="@+id/start_button"
-                style="@style/Button.Primary"
+                style="@style/AppButtonPrimary"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="4dp"
@@ -278,7 +278,7 @@
 
             <Button
                 android:id="@+id/stop_button"
-                style="@style/Button.Secondary"
+                style="@style/AppButtonSecondary"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="2dp"
@@ -288,7 +288,7 @@
 
             <Button
                 android:id="@+id/next_button"
-                style="@style/Button.Secondary"
+                style="@style/AppButtonSecondary"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="4dp"

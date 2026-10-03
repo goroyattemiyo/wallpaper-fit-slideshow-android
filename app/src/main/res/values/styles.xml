@@ -10,32 +10,32 @@
         <item name="android:windowBackground">@color/app_background</item>
     </style>
 
-    <style name="Text.SectionTitle">
+    <style name="AppTextSectionTitle">
         <item name="android:textColor">@color/text_primary</item>
         <item name="android:textSize">14sp</item>
         <item name="android:textStyle">bold</item>
     </style>
 
-    <style name="Text.Helper">
+    <style name="AppTextHelper">
         <item name="android:textColor">@color/text_secondary</item>
         <item name="android:textSize">12sp</item>
     </style>
 
-    <style name="Button.Primary" parent="@android:style/Widget.Material.Button">
+    <style name="AppButtonPrimary" parent="@android:style/Widget.Material.Button">
         <item name="android:backgroundTint">@color/accent</item>
         <item name="android:textColor">@android:color/white</item>
         <item name="android:minHeight">44dp</item>
         <item name="android:textAllCaps">false</item>
     </style>
 
-    <style name="Button.Secondary" parent="@android:style/Widget.Material.Button">
+    <style name="AppButtonSecondary" parent="@android:style/Widget.Material.Button">
         <item name="android:backgroundTint">@color/surface</item>
         <item name="android:textColor">@color/text_primary</item>
         <item name="android:minHeight">44dp</item>
         <item name="android:textAllCaps">false</item>
     </style>
 
-    <style name="Button.Danger" parent="@android:style/Widget.Material.Button">
+    <style name="AppButtonDanger" parent="@android:style/Widget.Material.Button">
         <item name="android:backgroundTint">@color/surface</item>
         <item name="android:textColor">@color/danger</item>
         <item name="android:minHeight">44dp</item>

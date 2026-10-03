@@ -15,7 +15,7 @@
 
         <Button
             android:id="@+id/back_button"
-            style="@style/Button.Secondary"
+            style="@style/AppButtonSecondary"
             android:layout_width="wrap_content"
             android:layout_height="40dp"
             android:minHeight="0dp"
@@ -45,7 +45,7 @@
 
         <Button
             android:id="@+id/home_target_button"
-            style="@style/Button.Secondary"
+            style="@style/AppButtonSecondary"
             android:layout_width="0dp"
             android:layout_height="42dp"
             android:layout_marginEnd="2dp"
@@ -55,7 +55,7 @@
 
         <Button
             android:id="@+id/lock_target_button"
-            style="@style/Button.Secondary"
+            style="@style/AppButtonSecondary"
             android:layout_width="0dp"
             android:layout_height="42dp"
             android:layout_marginStart="2dp"
@@ -85,7 +85,7 @@
 
     <TextView
         android:id="@+id/gesture_status"
-        style="@style/Text.Helper"
+        style="@style/AppTextHelper"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
@@ -107,7 +107,7 @@
 
             <Button
                 android:id="@+id/contain_button"
-                style="@style/Button.Secondary"
+                style="@style/AppButtonSecondary"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="3dp"
@@ -116,7 +116,7 @@
 
             <Button
                 android:id="@+id/background_button"
-                style="@style/Button.Secondary"
+                style="@style/AppButtonSecondary"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="3dp"
@@ -126,7 +126,7 @@
 
             <Button
                 android:id="@+id/reset_button"
-                style="@style/Button.Secondary"
+                style="@style/AppButtonSecondary"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="3dp"
@@ -142,7 +142,7 @@
 
             <Button
                 android:id="@+id/save_button"
-                style="@style/Button.Secondary"
+                style="@style/AppButtonSecondary"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="3dp"
@@ -151,7 +151,7 @@
 
             <Button
                 android:id="@+id/apply_button"
-                style="@style/Button.Primary"
+                style="@style/AppButtonPrimary"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="3dp"

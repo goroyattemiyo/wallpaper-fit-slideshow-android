@@ -14,13 +14,13 @@
         android:paddingBottom="12dp">
 
         <TextView
-            style="@style/Text.SectionTitle"
+            style="@style/AppTextSectionTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="スライドショー" />
 
         <TextView
-            style="@style/Text.Helper"
+            style="@style/AppTextHelper"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
@@ -32,7 +32,7 @@
             android:layout_height="wrap_content" />
 
         <TextView
-            style="@style/Text.Helper"
+            style="@style/AppTextHelper"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
@@ -51,7 +51,7 @@
             android:background="@color/border" />
 
         <TextView
-            style="@style/Text.SectionTitle"
+            style="@style/AppTextSectionTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="壁紙表示" />
@@ -89,7 +89,7 @@
             android:thumbTint="@color/accent" />
 
         <TextView
-            style="@style/Text.Helper"
+            style="@style/AppTextHelper"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="ぼかしは画像ごとではなく、Home / Lockそれぞれの全体設定です。" />
@@ -102,13 +102,13 @@
             android:background="@color/border" />
 
         <TextView
-            style="@style/Text.SectionTitle"
+            style="@style/AppTextSectionTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="ホーム画面Widget" />
 
         <TextView
-            style="@style/Text.Helper"
+            style="@style/AppTextHelper"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="3dp"
@@ -125,14 +125,14 @@
 
         <Button
             android:id="@+id/widget_pin_button"
-            style="@style/Button.Primary"
+            style="@style/AppButtonPrimary"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
             android:text="＋ Widgetをホーム画面に追加" />
 
         <TextView
-            style="@style/Text.Helper"
+            style="@style/AppTextHelper"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
