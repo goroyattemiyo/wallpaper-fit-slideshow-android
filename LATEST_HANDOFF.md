@@ -409,3 +409,24 @@ Verification status:
 - Unit/Lint/assemble/install: NOT YET RUN for schema 6 + widget
 - Redmi widget behavior: NOT YET VERIFIED
 - CI: NOT RUN
+
+
+## Static Review - Global Blur + Widget
+
+Static review completed after schema 6 + widget implementation:
+
+- per-image whole-wallpaper blur field/access: none
+- Home global blur storage/apply path: present
+- Lock global blur storage/apply path: present
+- old per-image wallpaper blur dialog/button references: none
+- widget provider registered in AndroidManifest
+- AppWidgetProviderInfo references the widget layout
+- all RemoteViews R.id references exist in widget XML
+- updatePeriodMillis = 0; widget is interaction-driven
+- widget PendingIntent broadcasts use foreground priority flag
+- slideshow/direct apply updates widget state
+- editor save and main settings refresh update widget state
+- static review: PASS
+- unit/lint/assemble/install: NOT YET RUN
+- Redmi / HyperOS widget behavior: NOT YET VERIFIED
+- CI: NOT RUN
